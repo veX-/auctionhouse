@@ -28,7 +28,7 @@ ___
 
 Visit [Youtube.com][] for more information.
 
-[youtube.com]: http://youtube.com "utube"
+[youtube.com]: http://youtube.com "Cuz I'm smarter than the average bear"
 
 *em tags*
 ** stronggg **
