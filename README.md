@@ -6,9 +6,18 @@
 + Liviu
 + Andreea
 
-	""" code block """
-	if (!code)
-no more code block
+### Example
+
+	require './watcher-idea.rb'
+
+	Noah::Watcher.watch do
+	  pattern "//noah/configuration/*"
+	  destination Proc.new {|x| something_with(x)}
+	  run!
+	end
+
+## logger.rb
+An example using logger as a watcher. Pretty straighforward.
 
 ___
 
