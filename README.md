@@ -1,12 +1,13 @@
-### Markdown much?!
+## IDP 2013 - "Auction House" project
 
-### Auction House project
+### Current status: * phase 1 - planning *
 
-## Team members
-+ Liviu
+### The team
 + Andreea
++ Liviu
 
-### Example
+
+### Markdown examples
 
 	require './watcher-idea.rb'
 
@@ -31,6 +32,7 @@ Visit [Youtube.com][] for more information.
 [youtube.com]: http://youtube.com "Cuz I'm smarter than the average bear"
 
 *em tags*
+
 ** stronggg **
 
 
