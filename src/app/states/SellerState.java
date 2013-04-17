@@ -89,7 +89,7 @@ public class SellerState extends State {
 		switch (action) {
 		case RequestTypes.REQUEST_LAUNCH_OFFER:
 			if (med.addUserToList(userName, product) > -1)
-				;//TODO this fails !! med.updateProductsModel(userName, product, null, BEST_OFFER_COL);
+				med.updateProductsModel(userName, product, null, BEST_OFFER_COL);
 			break;
 		case RequestTypes.REQUEST_DROP_OFFER:
 			med.removeUserFromList(userName, product);

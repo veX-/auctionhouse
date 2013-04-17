@@ -412,6 +412,7 @@ public class Mediator implements WSClientMediator {
 	public void sendNotifications(int action, String userName, String product, int price) {
 
 		Vector<User> destinations = new Vector<User>();
+		String userInPackage = userName;
 
 		/* here we build the destinations depending on the given command */
 		switch (action) {
@@ -434,13 +435,12 @@ public class Mediator implements WSClientMediator {
 
 		/* assumes it can logically be called (we don't have the highest bid) */
 		case RequestTypes.REQUEST_DROP_AUCTION:
-			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-				if (entry.getValue().getName().equals(userName)) {
+			User user = relevantUsers.get(userName);
+			if (user == null)
+				return;
 
-					destinations.add(entry.getValue());
-					break;
-				}
-			}
+			destinations.add(user);
+			userInPackage = getUserName();
 			break;
 
 		/* 
@@ -556,7 +556,7 @@ public class Mediator implements WSClientMediator {
 			break;
 		}
 		
-		if (!netMed.sendNotifications(action, userName, product, price, destinations)) {
+		if (!netMed.sendNotifications(action, userInPackage, product, price, destinations)) {
 			logger.debug("Failed to send network Notifications!");
 		}
 	}

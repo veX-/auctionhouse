@@ -17,7 +17,6 @@ public class DropAuctionComm implements Command {
 
 		med.removeUserFromList(user, product);
 		med.sendNotifications(RequestTypes.REQUEST_DROP_AUCTION, user, product);
-
 	}
 
 }

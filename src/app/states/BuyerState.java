@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 import app.Command;
-import app.DropOfferComm;
+import app.DropOfferReqComm;
 import app.RefuseOfferComm;
 import app.AcceptOfferComm;
 import app.LaunchOfferReqComm;
@@ -67,7 +67,7 @@ public class BuyerState extends State {
 				&& !status.equals(STATE_TRANSFERP)
 				&& !status.equals(STATE_TRANSFERC)) {
 			items = new HashMap<String, Command>();
-			items.put("Drop offer request", new DropOfferComm(med));
+			items.put("Drop offer request", new DropOfferReqComm(med));
 		}
 
 		return items;
@@ -111,6 +111,7 @@ public class BuyerState extends State {
 			med.updateStatusList(name, product, price, State.STATE_OFFERMADE);
 			break;
 		case RequestTypes.REQUEST_DROP_AUCTION:
+			logger.debug("Drop auction for name " + name + " product " + product);
 			med.removeUserFromList(name, product);
 			break;
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:

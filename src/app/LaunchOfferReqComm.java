@@ -1,8 +1,13 @@
 package app;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 
+import app.model.User;
 import app.states.RequestTypes;
+import app.states.State;
 
 public class LaunchOfferReqComm implements Command {
 
@@ -26,6 +31,13 @@ public class LaunchOfferReqComm implements Command {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+		else {
+			HashMap<String, User> relUsers = med.getRelevantUsers();
+			Map<String, String> users = new HashMap<String, String>();
+			for (String key : relUsers.keySet())
+				users.put(key, State.STATE_NOOFFER);
+			med.updateUsersList(productName, users);
 		}
 
 		logger.debug("Launching offer");
