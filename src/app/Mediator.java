@@ -244,7 +244,7 @@ public class Mediator implements WSClientMediator {
 	}
 
 	public boolean logOut() {
-		// TODO send the logout over the network
+		netMed.userLogOut(mgr.getUser());
 		return mgr.logout();
 	}
 

@@ -17,6 +17,8 @@ public interface NetworkMediator {
 	
 	public void setLoginSuccess();
 	
+	public boolean userLogOut(User user);
+	
 	public boolean sendLoginNotification(int action, String ip, int port, User user);
 	
 	public boolean fetchRelevantUsers(User user);

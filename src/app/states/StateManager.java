@@ -40,6 +40,10 @@ public class StateManager {
 		return currentState.getUserName();
 	}
 	
+	public User getUser() {
+		return currentState.user;
+	}
+	
 	public Vector<String> getProducts() {
 		return currentState.getProducts();
 	}

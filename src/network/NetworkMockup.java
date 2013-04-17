@@ -277,11 +277,20 @@ public class NetworkMockup implements NetworkMediator {
 	
 		return true;	
 	}
-	
+
+
+	public boolean userLogOut(User user) {
+		return sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
+					LOGIN_SERVER_IP, LOGIN_SERVER_PORT, user);
+	}
+
 	/**
 	 * Submits a login notification (only called in Login Server mode)
 	 */
 	public boolean sendLoginNotification(int action, String ip, int port, User user) {
+		
+		if (action == RequestTypes.REQUEST_LOGOUT)
+			System.out.println("User " + user.getName() + " just logged out!");
 		
 		NetworkNotification nn = new NetworkNotification(action, user);
 		

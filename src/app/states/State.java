@@ -46,6 +46,10 @@ public abstract class State {
 	public abstract boolean receiveStatusUpdate(int action, String name,
 			String product, int price);
 
+	public User getUser() {
+		return user;
+	}
+	
 	public String getUserName() {
 		return user.getName();
 	}
