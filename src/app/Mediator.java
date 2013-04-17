@@ -65,6 +65,10 @@ public class Mediator implements WSClientMediator {
 		return (String) products.getValueAt(row, ProductListModel.PROD_COL);
 	}
 
+	public void updateProductsModel(String userName, String product, Integer price, int col) {
+		products.updateProductsModel(userName, product, price, col);
+	}
+
 	/**
 	 * Get a selected username within the users list at row @row.
 	 * 
@@ -166,9 +170,10 @@ public class Mediator implements WSClientMediator {
 		guiMed.repaint();
 	}
 
-	public void addUserToList(String username, String product) {
-		products.addUserToList(username, product);
+	public int addUserToList(String username, String product) {
+		int index = products.addUserToList(username, product);
 		guiMed.repaint();
+		return index;
 	}
 
 	public boolean register(String username) {
@@ -346,10 +351,24 @@ public class Mediator implements WSClientMediator {
 	}
 	
 	/*
-	 * TODO: when Buyer refuses lowest bid :-), all other auction participants
+	 * when Buyer refuses lowest bid :-), all other auction participants
 	 * must be updated with the new lowest bid
 	 */
 	public boolean hasHighestBid(User seller, String product) {
+		Integer price = (Integer)
+				products.getValueFromCol(seller.getName(), product, ProductListModel.OFFER_COL);
+		if (price == null)
+			return false;
+
+		int minOffer = price;
+		Integer[] offers = getOffersList(product);
+		if (offers != null) {
+			for (Integer offer : offers)
+				if (offer != null)
+					minOffer = (minOffer > offer) ? offer : minOffer;
+			if (minOffer > -1 && price < minOffer)
+				return true;
+		}
 		return false;
 	}
 	
@@ -383,7 +402,6 @@ public class Mediator implements WSClientMediator {
 		switch (action) {
 		case RequestTypes.REQUEST_LAUNCH_OFFER:
 		case RequestTypes.REQUEST_DROP_OFFER:
-			logger.debug("Sending offer request notification");
 			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
 				if (entry.getValue().getItems().contains(product)) {
 					
@@ -418,7 +436,7 @@ public class Mediator implements WSClientMediator {
 		
 		/*
 		 * accept offer :  send ACCEPT_OFFER to the winner
-		 *  (buyer pov)         DROP_OFFER to the other participants
+		 *  (buyer pov)         DROP_OFFER_REQ to the other participants
 		 */
 		case RequestTypes.REQUEST_ACCEPT_OFFER:
 		
@@ -435,8 +453,7 @@ public class Mediator implements WSClientMediator {
 					continue;
 				}
 				
-				if (seller.getItems().contains(product)
-						&& hasMadeOffer(seller)) {
+				if (seller.getItems().contains(product)) {
 				
 					otherDestinations.add(seller);
 				}
@@ -448,51 +465,71 @@ public class Mediator implements WSClientMediator {
 			}
 			
 			/* other auction participants simply receive a "DROP_OFFER" message */
+			if (!netMed.sendNotifications(RequestTypes.REQUEST_DROP_OFFER,
+							mgr.getUserName(), product, price, otherDestinations)) {
+				logger.debug("Failed to send network Notifications!");
+			}
+
+			return;
+		/*
+		 * start transfer :  send INITIAL_TRANSFER to the winner
+		 *  (buyer pov)         DROP_AUCTION to the other participants
+		 */
+		case RequestTypes.REQUEST_INITIAL_TRANSFER:
+			otherDestinations = new Vector<User>();
+			found = false;
+		
+			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) 
+				if (!entry.getKey().equals(userName)) {
+					User seller = entry.getValue();
+	
+					if (seller.getItems().contains(product)) {
+					
+						otherDestinations.add(seller);
+					}
+				}
+			/* Start transfer with the winner. */
+			doProductTransfer(userName, product);
+			
+			/* other auction participants simply receive a "DROP_AUCTION" message */
 			if (!netMed.sendNotifications(RequestTypes.REQUEST_DROP_AUCTION,
 							mgr.getUserName(), product, price, otherDestinations)) {
 				logger.debug("Failed to send network Notifications!");
 			}
 
 			return;
-		
+
 		case RequestTypes.REQUEST_REFUSE_OFFER:
-			
-			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-				User seller = entry.getValue();
-				if (seller.getName().equals(userName)) {
+			User seller = relevantUsers.get(userName);
+			if (seller != null) {
+				destinations.add(seller);
 
-					destinations.add(seller);
-					
-					if (hasHighestBid(seller, product)) {
+				if (hasHighestBid(seller, product)) {
+					otherDestinations = new Vector<User>();						
+					for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
+						seller = e.getValue();
+						if (seller.getItems().contains(product) && hasMadeOffer(seller)) {
 						
-						otherDestinations = new Vector<User>();
-						
-						for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
-							seller = e.getValue();
-							if (seller.getItems().contains(product) && hasMadeOffer(seller)) {
-							
-								otherDestinations.add(seller);
-							}
-						}
-
-						/* 
-						 * if the best bid was refused, we refresh other sellers with
-						 * a "REQUEST_LAUNCH_OFFER" message
-						 */
-						if (!netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
-									mgr.getUserName(), product, getBestOffer(product), otherDestinations)) {
-							logger.debug("Failed to send network Notifications!");
+							otherDestinations.add(seller);
 						}
 					}
-					
-					break;
+
+					/* 
+					 * if the best bid was refused, we refresh other sellers with
+					 * a "REQUEST_LAUNCH_OFFER" message
+					 */
+					if (!netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
+								mgr.getUserName(), product, getBestOffer(product), otherDestinations)) {
+						logger.debug("Failed to send network Notifications!");
+					}
+				}
+				if (!netMed.sendNotifications(action, getUserName(), product, price, destinations)) {
+					logger.debug("Failed to send network Notifications!");
 				}
 			}
-			
-			break;
+			return;
 		}
-		
-		if (!netMed.sendNotifications(action, userName, product, price, destinations)) {
+		if (!netMed.sendNotifications(action, getUserName(), product, price, destinations)) {
 			logger.debug("Failed to send network Notifications!");
 		}
 	}
@@ -507,13 +544,7 @@ public class Mediator implements WSClientMediator {
 		
 		Vector<User> destinations = new Vector<User>();
 
-		for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-			if (entry.getValue().getName().equals(buyerName)) {
-
-				destinations.add(entry.getValue());
-				break;
-			}
-		}
+		destinations.add(relevantUsers.get(buyerName));
 
 		netMed.sendNotifications(RequestTypes.REQUEST_INITIAL_TRANSFER,
 				buyerName, product, 0, destinations);

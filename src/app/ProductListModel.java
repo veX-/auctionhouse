@@ -66,6 +66,22 @@ public class ProductListModel extends DefaultTableModel {
 		return model.get(index);
 	}
 
+	public Object getValueFromCol(String userName, String product, int col) {
+		Integer row = prodName2Index.get(product);
+		if (row == null)
+			return null;
+
+		DefaultListModel<String> model = (DefaultListModel<String>)((JList<String>)
+				getValueAt(row, LIST_COL)).getModel();
+		int index = model.indexOf(userName);
+		if (index < 0)
+			return null;
+
+		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)((JList<Integer>)
+				getValueAt(row, col)).getModel();
+		return model1.get(index);
+	}
+
 	public boolean hasStatus(int row, String status) {
 		JList<String> states = (JList<String>) getValueAt(row, STATUS_COL);
 		DefaultListModel<String> model = (DefaultListModel<String>) states
@@ -263,6 +279,22 @@ public class ProductListModel extends DefaultTableModel {
 			}
 	}
 
+	public void updateProductsModel(String userName, String product, Integer price, int col) {
+		Integer row = prodName2Index.get(product);
+		int listIndex;
+		if (row == null)
+			return;
+
+		DefaultListModel<String> model = (DefaultListModel<String>)
+				((JList<String>) getValueAt(row, LIST_COL))
+				.getModel();
+		listIndex = model.indexOf(userName);
+		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)
+				((JList<Integer>) getValueAt(row, col))
+				.getModel();
+		model1.set(listIndex, price);
+	}
+
 	public void removeUserFromList(String username) {
 		for (Map.Entry<String, Integer> entry : prodName2Index.entrySet())
 			removeUserFromList(username, entry.getKey());
@@ -292,14 +324,16 @@ public class ProductListModel extends DefaultTableModel {
 		}
 	}
 
-	public void addUserToList(String username, String product) {
+	public int addUserToList(String username, String product) {
 		Integer index = prodName2Index.get(product);
 		if (index == null)
-			return;
+			return -1;
 		DefaultListModel<String> model = (DefaultListModel<String>)
 				((JList<String>) getValueAt(index, LIST_COL)).getModel();
 		if (!model.contains(username)) {
+			int userIndex;
 			model.addElement(username);
+			userIndex = model.indexOf(username);
 
 			model = (DefaultListModel<String>)
 					((JList<String>) getValueAt(index, STATUS_COL)).getModel();
@@ -310,6 +344,8 @@ public class ProductListModel extends DefaultTableModel {
 			DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
 					((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
 			offers.addElement(null);
+			return userIndex;
 		}
+		return -1;
 	}
 }

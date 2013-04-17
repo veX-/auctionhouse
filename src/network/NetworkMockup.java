@@ -46,13 +46,6 @@ public class NetworkMockup implements NetworkMediator {
 		return false;
 	}
 
-	@Override
-	public void sendDropAnnouncement(String[] users, String productName,
-			String username) {
-		// TODO
-
-	}
-
 	/**
 	 * Initiates the connection to the remote socket
 	 */

@@ -2,7 +2,6 @@ package app.states;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -74,6 +73,11 @@ public class SellerState extends State {
 			items.put("Drop auction", new DropAuctionComm(med));
 			items.put("Make offer", new MakeOfferComm(med));
 		}
+		else if (status.equals(STATE_OFFERMADE)) {
+			if (items == null)
+				items = new HashMap<String, Command>();
+			items.put("Drop auction", new DropAuctionComm(med));
+		}
 
 		return items;
 	}
@@ -84,16 +88,29 @@ public class SellerState extends State {
 
 		switch (action) {
 		case RequestTypes.REQUEST_LAUNCH_OFFER:
-			med.addUserToList(userName, product);
+			if (med.addUserToList(userName, product) > -1)
+				;//TODO this fails !! med.updateProductsModel(userName, product, null, BEST_OFFER_COL);
 			break;
 		case RequestTypes.REQUEST_DROP_OFFER:
 			med.removeUserFromList(userName, product);
+			break;
+		case RequestTypes.REQUEST_MAKE_OFFER:
+			med.updateProductsModel(userName, product, price, BEST_OFFER_COL);
+			break;
+		case RequestTypes.REQUEST_ACCEPT_OFFER:
+			med.updateStatusList(userName, product, State.STATE_OFFERACC);
+			med.sendNotifications(RequestTypes.REQUEST_INITIAL_TRANSFER, userName, product);
+			break;
+		case RequestTypes.REQUEST_REFUSE_OFFER:
+			logger.debug("Seller was refused for product " + product + " by" + userName);
+			med.updateStatusList(userName, product, State.STATE_OFFERREF);
 			break;
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:
 			med.initTransfer(userName, product, price);
 			break;
 		case RequestTypes.REQUEST_TRANSFER:
 			med.transfer(userName, product, price);
+			break;
 		case RequestTypes.REQUEST_LOGOUT:
 			med.removeUserFromList(userName);
 			med.forgetRelevantUser(userName);
@@ -114,14 +131,9 @@ public class SellerState extends State {
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {
 		Vector<User> destinations = new Vector<User>();
 		
-		for (Entry<String, User> entry : med.getRelevantUsers().entrySet()) {
-			User buyer = entry.getValue();
-	
-			if (buyer.getName().equals(userName)) {			
-				destinations.add(buyer);
-				break;
-			}
-		}
+		User buyer = med.getRelevantUsers().get(userName);
+		if (buyer != null)
+			destinations.add(buyer);
 		
 		return destinations;
 	}

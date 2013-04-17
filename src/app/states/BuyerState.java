@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 
 import app.Command;
 import app.DropOfferReqComm;
-import app.DropOfferComm;
+import app.RefuseOfferComm;
 import app.AcceptOfferComm;
 import app.LaunchOfferReqComm;
 import app.Mediator;
@@ -82,7 +82,7 @@ public class BuyerState extends State {
 		if (status.equals(STATE_OFFERMADE)) {
 			items = new HashMap<String, Command>();
 			items.put("Accept offer", new AcceptOfferComm(med));
-			items.put("Refuse offer", new DropOfferComm(med));
+			items.put("Refuse offer", new RefuseOfferComm(med));
 		}
 
 		return items;
@@ -106,18 +106,19 @@ public class BuyerState extends State {
 				if (minOffer > -1 && price < minOffer)
 					/* Notify everyone the best offer. */
 					med.sendNotifications(RequestTypes.REQUEST_MAKE_OFFER,
-							getUserName(), product, price);
+							name, product, price);
 			}
 			med.updateStatusList(name, product, price, State.STATE_OFFERMADE);
 			break;
 		case RequestTypes.REQUEST_DROP_AUCTION:
-			med.updateStatusList(name, product, State.STATE_NOOFFER);
+			med.removeUserFromList(name, product);
 			break;
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:
 			med.initTransfer(name, product, price);
 			break;
 		case RequestTypes.REQUEST_TRANSFER:
 			med.transfer(name, product, price);
+			break;
 		case RequestTypes.REQUEST_LOGOUT:
 			med.removeUserFromList(name);
 			med.forgetRelevantUser(name);
@@ -137,9 +138,6 @@ public class BuyerState extends State {
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {
 		Vector<User> destinations = new Vector<User>();
 
-		if (!med.hasHighestBid(med.getRelevantUsers().get(userName), product))
-			return destinations;
-		
 		for (Entry<String, User> entry : med.getRelevantUsers().entrySet()) {
 			User seller = entry.getValue();
 
