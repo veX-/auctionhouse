@@ -145,7 +145,7 @@ public class ProductListModel extends DefaultTableModel {
 				model.clear();
 				model.addElement(status);
 
-				JList<Integer> prices = (JList<Integer>) getValueAt(row, LIST_COL);
+				JList<Integer> prices = (JList<Integer>) getValueAt(row, OFFER_COL);
 				DefaultListModel<Integer> pmodel = (DefaultListModel<Integer>) prices.getModel();
 				int price = pmodel.get(listIndex);
 				pmodel.clear();
