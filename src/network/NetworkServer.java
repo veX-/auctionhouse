@@ -91,6 +91,9 @@ public class NetworkServer extends Thread {
 			
 			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
 				
+				if (e.getKey().equals(userName))
+					continue;
+				
 				User user = e.getValue();
 				Vector<String> commonProducts = new Vector<String>();
 				
