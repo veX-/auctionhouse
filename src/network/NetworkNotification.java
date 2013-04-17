@@ -58,6 +58,7 @@ public class NetworkNotification implements java.io.Serializable {
 		this.action = action;
 		this.product = product;
 		this.name = name;
+		this.price = price;
 		this.productChunk = chunk;
 	}
 
