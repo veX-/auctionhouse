@@ -121,7 +121,8 @@ public class Mediator implements WSClientMediator {
 		switch (status) {
 		case State.STATE_TRANSFERS:
 		case State.STATE_TRANSFERP:
-			//TODO process value and don't break! (setStatus first)
+			products.setStatus(userName, productName, status);
+			break;
 		case State.STATE_OFFERMADE:
 			mgr.checkBestOffer(userName, productName, value);
 		case State.STATE_OFFERE:
@@ -130,7 +131,7 @@ public class Mediator implements WSClientMediator {
 		default:
 			return;
 		}
-		products.setStatus(userName, productName, status);
+
 		guiMed.repaint();
 	}
 
@@ -156,7 +157,9 @@ public class Mediator implements WSClientMediator {
 	 */
 	public void transfer(String userName, String productName, int value) {
 		products.setStatus(userName, productName, State.STATE_TRANSFERP);
-		products.updateTransfer(userName, productName, value);
+		int full = products.updateTransfer(userName, productName, value);
+		if (full == 1)
+			products.setStatus(userName, productName, State.STATE_TRANSFERC);
 		guiMed.repaint();
 	}
 
@@ -177,6 +180,7 @@ public class Mediator implements WSClientMediator {
 
 	public int addUserToList(String username, String product) {
 		int index = products.addUserToList(username, product);
+
 		guiMed.repaint();
 		return index;
 	}
@@ -252,9 +256,15 @@ public class Mediator implements WSClientMediator {
 		return mgr.getUserName();
 	}
 
+	/**
+	 * @param row
+	 * @param name
+	 * @return an asscociation on menu entry name and command to be executed on click.
+	 */
 	public Map<String, Command> getServiceMenuItems(int row, String name) {
 		if (name == null)
-			if (products.hasStatus(row, State.STATE_INACTIVE))
+			if (products.hasStatus(row, State.STATE_INACTIVE) ||
+					products.hasStatus(row, State.STATE_TRANSFERC))
 				return mgr.getServiceMenuItems(State.STATE_INACTIVE);
 		return mgr.getServiceMenuItems(products.getStatus(row, name));
 	}
@@ -575,8 +585,11 @@ public class Mediator implements WSClientMediator {
 	public void doProductTransfer(String buyerName, String product) {
 		
 		Vector<User> destinations = new Vector<User>();
+		User user = relevantUsers.get(buyerName);
 
-		destinations.add(relevantUsers.get(buyerName));
+		if (user == null)
+			return;
+		destinations.add(user);
 
 		netMed.sendNotifications(RequestTypes.REQUEST_INITIAL_TRANSFER,
 				buyerName, product, 0, destinations);

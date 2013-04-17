@@ -58,7 +58,6 @@ public class BuyerState extends State {
 	@Override
 	public Map<String, Command> getServiceMenuItems(String status) {
 		Map<String, Command> items = null;
-		System.out.println(status);
 		if (status.equals(STATE_INACTIVE) || status.equals(STATE_TRANSFERC)) {
 			items = new HashMap<String, Command>();
 			items.put("Launch offer request", new LaunchOfferReqComm(med));

@@ -100,9 +100,9 @@ public class ProductListModel extends DefaultTableModel {
 		JList<String> list = (JList<String>) getValueAt(row, LIST_COL);
 		DefaultListModel<String> model = (DefaultListModel<String>) list
 				.getModel();
-		if (model.contains(name)) {
-			int index = model.indexOf(name);
-			list = (JList<String>) getValueAt(row,STATUS_COL);
+		if (name == null || model.contains(name)) {
+			int index = (name == null) ?  0 : model.indexOf(name);
+			list = (JList<String>) getValueAt(row, STATUS_COL);
 			model = (DefaultListModel<String>) list.getModel();
 			status = model.get(index);
 		}
@@ -137,6 +137,12 @@ public class ProductListModel extends DefaultTableModel {
 		if (listIndex > -1) {
 			list = (JList<String>) getValueAt(row, STATUS_COL);
 			DefaultListModel<String> model = (DefaultListModel<String>) list.getModel();
+			String currStatus = model.get(listIndex);
+			if (status.equals(State.STATE_TRANSFERF) && !currStatus.equals(State.STATE_TRANSFERS)
+					&& !currStatus.equals(State.STATE_TRANSFERP)) {
+				removeUserFromList(userName, productName);
+				return;
+			}
 			model.set(listIndex, status);
 			if (status.equals(State.STATE_OFFERACC)){
 				/* Keep only userName in list models (users, statuses, offers). */
@@ -172,12 +178,6 @@ public class ProductListModel extends DefaultTableModel {
 		DefaultListModel<Integer> vmodel;
 		int listIndex;
 		switch (status) {
-		case State.STATE_TRANSFERS:
-			break;
-		case State.STATE_TRANSFERP:
-			JProgressBar bar = (JProgressBar) getValueAt(row, PROGRESS_COL);
-			bar.setValue(value);
-			break;
 		case State.STATE_OFFERMADE:
 			list = (JList<String>) getValueAt(row, LIST_COL);
 			model = (DefaultListModel<String>) list.getModel();
@@ -231,7 +231,10 @@ public class ProductListModel extends DefaultTableModel {
 		if (row == null)
 			return -1;
 
-		((JProgressBar)getValueAt(row, PROGRESS_COL)).setValue(value);
+		JProgressBar bar = (JProgressBar)getValueAt(row, PROGRESS_COL);
+		bar.setValue(value);
+		if (bar.getMaximum() == value)
+			return 1;
 
 		return 0;
 	}
@@ -279,7 +282,8 @@ public class ProductListModel extends DefaultTableModel {
 					model1.addElement(us.getValue());
 					offers.addElement(null);
 				}
-
+				/* Also clear the progress column. */
+				setValueAt(null, i, PROGRESS_COL);
 				break;
 			}
 	}
@@ -294,6 +298,8 @@ public class ProductListModel extends DefaultTableModel {
 				((JList<String>) getValueAt(row, LIST_COL))
 				.getModel();
 		listIndex = model.indexOf(userName);
+		if (listIndex < 0)
+			return;
 		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)
 				((JList<Integer>) getValueAt(row, col))
 				.getModel();
@@ -327,7 +333,8 @@ public class ProductListModel extends DefaultTableModel {
 				model.addElement(State.STATE_INACTIVE);
 			DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
 					((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
-			offers.clear();
+			offers.remove(listIndex);
+			setValueAt(null, index, PROGRESS_COL);
 		}
 	}
 
@@ -337,6 +344,21 @@ public class ProductListModel extends DefaultTableModel {
 			return -1;
 		DefaultListModel<String> model = (DefaultListModel<String>)
 				((JList<String>) getValueAt(index, LIST_COL)).getModel();
+
+		if (model.contains(username) ) {
+			int userIndex = model.indexOf(username);
+			model = (DefaultListModel<String>)
+					((JList<String>) getValueAt(index, STATUS_COL)).getModel();
+			if (model.contains(State.STATE_TRANSFERC) || model.contains(State.STATE_TRANSFERF)) {
+				/* Cleanup */
+				setValueAt(null, index, PROGRESS_COL);
+				DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
+						((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
+				model.set(userIndex, State.STATE_NOOFFER);
+				offers.set(userIndex, null);
+				return userIndex;
+			}
+		}
 		if (!model.contains(username)) {
 			int userIndex;
 			model.addElement(username);

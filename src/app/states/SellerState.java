@@ -108,7 +108,7 @@ public class SellerState extends State {
 			med.transfer(userName, product, price);
 			break;
 		case RequestTypes.REQUEST_LOGOUT:
-			med.removeUserFromList(userName);
+			med.updateStatusList(userName, product, State.STATE_TRANSFERF);
 			med.forgetRelevantUser(userName);
 			break;
 		default:
