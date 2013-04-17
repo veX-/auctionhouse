@@ -1,0 +1,71 @@
+Project: ah (i.e. auction house)
+Team: Eng4AH
+    - members: 
+      - Liviu Chircu
+      - Andreea Hodea
+
+Etapa a II-a - componenta de networking
+=======================================
+In urma implementarii componentei de networking am putut porni mai multe
+instante diferite de utilizatori si am urmarit realizarea comunicatiei cu succes
+intre acestia.
+
+Modificari in logica aplicatiei:
+-------------------------------
+1. Mecanism de login si logout
+In prima etapa un utilizator era autentificat la incarcarea aplicatiei, prin
+citirea unui fisier de configurare cu datele utilizatorului si cu preferintele
+pentru produse/servicii. In aceasta etapa, aplicatia porneste cu o fereastra de
+login in care utilizatorul trebuie sa introduca numele -UserName-, eventual
+parola -Password- si sa selecteze tipul -seller/buyer-. Daca datele introduse
+sunt valide, este incarcata pagina creata in etapa I si se primeste o lista de
+utilizatori relevanti.
+
+In momentul exprimarii dorintei de logout, se verifica daca utilizatorul
+respecta conditiile de parasire a aplicatiei (furnizorii nu au voie sa
+paraseasca aplicatia pana cand ofertele sale nu mai sunt valide) si in caz
+afirmativ, utilizatorii relevanti sunt anuntati si pagina curenta este inlocuita
+de cea de login. Cand un utilizator primeste notificare de logout, elimina
+utilizatorul respectiv, de la care a venit notificarea, din toate listele de
+utilizatori, adica de la fiecare produs.
+
+2. Populare liste de utilizatori
+In etapa anterioara, la lansarea "Launch Offer Request" lista de utilizatori
+era populata aleator. Acum, aceasta este populata in functie de notificarile
+de login si de logout primite de la dummyInstance.
+
+3. Populare coloana de best offer
+In momentul in care oferta unui furnizor nu este cea mai buna, acesta va primi
+o notificare ce se va reflecta in coloana de best offer. Cel care trimite
+aceasta notificare este un cumparator care constata ca oferta care tocmai i-a
+fost facuta este cea mai buna. Astfel, el poate astepta o oferta mai buna de la
+ceilalti furnizori sau se poate decide sa o accepte pe aceasta.
+
+4. Acceptarea unei oferte
+Cand un utilizator accepta o oferta/ii este acceptata o oferta, in lista pentru
+produl/seviciul respectiv ramane numai utilizatorul care a facut/acceptat oferta.
+
+Implementare
+------------
+Protocol:
+Clase:
+DummyUser/Server:
+
+Logging
+-------
+Un istoric al evenimentelor ce au avut loc de la pornirea aplicatiei si pana la
+parasirea acesteia sunt pastrate intr-un fisier de tipul $username.log si, de
+asemenea, informatii relevante sunt afisate la consola.
+
+- tehnologie: log4j
+- fisier de configurare: bin/log4j
+- fisier de logging: $username.log
+  - tip: rolling file
+
+Rulare
+------
+Ant: In radacina proiectului exista un fisier build.xml.
+Scenariu posibil:
+terminal1> ant Buyer
+terminal2> ant Seller
+terminal3> ant Seller
