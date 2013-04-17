@@ -47,9 +47,25 @@ produl/seviciul respectiv ramane numai utilizatorul care a facut/acceptat oferta
 
 Implementare
 ------------
+- tehnologie: nio
 Protocol:
+- majoritatea mesajelor sunt unidirectionale
+- notificari pentru fiecare optiuni din meniuri
+- se trimit obiecte
+  - incapsulare comenzi -> serializare -> trimitere
+- la delogare toti utilizatorii sunt instiintati
+
 Clase:
+- incapsulare notificare: NetworkNotification
+- NetworkMockup - fostul mockup ajuns la varianta finala, cu comunicatie reala
+- NetworkServer - pool threaduri pentru ascultare notificari
+
 DummyUser/Server:
+- actioneaza pe post de WebServiceServer
+  - cand un utilizator se autentifica, trimite un mesaj de login catre acest
+  dummy user, care trimite login events
+- logout
+- tratare launch offer request pentru a agrega lista de utilizatori relevanti
 
 Logging
 -------
@@ -65,7 +81,4 @@ asemenea, informatii relevante sunt afisate la consola.
 Rulare
 ------
 Ant: In radacina proiectului exista un fisier build.xml.
-Scenariu posibil:
-terminal1> ant Buyer
-terminal2> ant Seller
-terminal3> ant Seller
+> ant run
