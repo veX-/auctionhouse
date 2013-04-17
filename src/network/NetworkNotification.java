@@ -15,6 +15,7 @@ public class NetworkNotification implements java.io.Serializable {
 	private int price;
 	private byte[] productChunk;
 	
+	private User user;
 	private String ip;
 	private int port;
 	private Vector<String> products;
@@ -30,11 +31,13 @@ public class NetworkNotification implements java.io.Serializable {
 	public NetworkNotification(int action, User user) {
 		this.action = action;
 		
+		this.user = user;
+		
 		if (user != null) {
 			this.name = user.getName();
 			this.ip = user.getIp();
 			this.port = user.getPort();
-			this.products = user.getItems();
+			this.products = user.getProducts();
 		}
 	}
 
@@ -72,7 +75,11 @@ public class NetworkNotification implements java.io.Serializable {
 	}
 
 	public String getProduct() {
-		return product;
+		return this.product;
+	}
+	
+	public void setProduct(String product) {
+		this.product = product;
 	}
 
 	public int getPrice() {
@@ -89,6 +96,10 @@ public class NetworkNotification implements java.io.Serializable {
 	
 	public int getPort() {
 		return port;
+	}
+	
+	public User getUser() {
+		return user;
 	}
 	
 	public Vector<String> getProducts() {

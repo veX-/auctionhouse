@@ -159,10 +159,6 @@ public class ProductsView extends JFrame {
 		updateRowHeights();
 		prodPane.repaint();
 	}
-	
-	public void postMainWindowInit() {
-		med.postMainWindowInit();
-	}
 
 	public void logIn(String username, String password, String type) {
 		if (med.logIn(username, password, type)) {

@@ -123,8 +123,8 @@ public class SellerState extends State {
 		return true;
 	}
 	
-	public User createUser(String name, String ip, int port, Vector<String> items) {
-		return new Buyer(name, ip, port, items);
+	public User createUser(String name, String ip, int port, Vector<String> products) {
+		return new Buyer(name, ip, port, products);
 	}
 	
 	/* Network related */

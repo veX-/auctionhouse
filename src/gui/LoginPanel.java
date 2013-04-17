@@ -130,7 +130,6 @@ public class LoginPanel extends JPanel {
 				String password = passField.getText();
 				String type = (String)typeComboBox.getSelectedItem();
 				pv.logIn(username, password, type);
-				pv.postMainWindowInit();
 			}
 		});
 		bottomPanel.add(loginButton, new GridBagConstraints(5, 1, 1, 1, 0.0, 0.0,

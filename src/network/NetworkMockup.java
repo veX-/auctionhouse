@@ -166,6 +166,8 @@ public class NetworkMockup implements NetworkMediator {
 		NetworkNotification nn = new NetworkNotification(
 				RequestTypes.REQUEST_RELEVANT_USERS, user);
 		
+		nn.setProduct(user.getProducts().get(0));
+		
 		System.out.println("[NETWORK]: Fetching users...");
 		
 		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {

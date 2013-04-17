@@ -2,11 +2,14 @@ package app.model;
 
 import java.util.Vector;
 
-abstract public class User {
+abstract public class User implements java.io.Serializable {
+
+	private static final long serialVersionUID = 2697874685391642227L;
+
 	private String name;
 	protected String type;
 	private String password;
-	private Vector<String> items;
+	private Vector<String> products;
 	private Vector<Integer> bids;
 
 	private String ip;
@@ -24,18 +27,18 @@ abstract public class User {
 		this.password = password;
 	}
 
-	public User(String name, String ip, int port, Vector<String> items) {
+	public User(String name, String ip, int port, Vector<String> products) {
 		this(name, "");
 		this.ip = ip;
 		this.port = port;
-		this.items = items;
+		this.products = products;
 		
-		if (items == null)
+		if (products == null)
 			this.bids = null;
 		else
-			this.bids = new Vector<Integer>(items.size());
+			this.bids = new Vector<Integer>(products.size());
 	}
-
+	
 	public String getName() {
 		return name;
 	}
@@ -57,7 +60,7 @@ abstract public class User {
 	}
 	
 	public int getBid(String product) {
-		int i = items.indexOf(product);
+		int i = products.indexOf(product);
 		
 		if (i == -1) {
 			System.out.println("No such product: " + product);
@@ -66,13 +69,13 @@ abstract public class User {
 		
 		return bids.get(i);
 	}
-
-	public Vector<String> getItems() {
-		return items;
+	
+	public Vector<String> getProducts() {
+		return products;
 	}
 	
-	public void setItems(Vector<String> items) {
-		this.items = items;
+	public void setProducts(Vector<String> products) {
+		this.products = products;
 	}
 
 	@Override

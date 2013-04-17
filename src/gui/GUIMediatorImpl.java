@@ -57,10 +57,5 @@ public class GUIMediatorImpl implements GUIMediator {
 	public TableModel getProducts() {
 		return med.getProducts();
 	}
-	
-	@Override
-	public void postMainWindowInit() {
-		med.postMainWindowInit();
-	}
 
 }

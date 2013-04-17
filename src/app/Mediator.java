@@ -305,12 +305,18 @@ public class Mediator implements WSClientMediator {
 		return mgr.getListName();
 	}
 
-	public void handleLoginEvent(String ip, int port, String name, Vector<String> items) {
-		System.out.println(ip + " " + port + " " + name + " " + items);
-		User user = mgr.createUser(name, ip, port, items);
-		relevantUsers.put(name, user);
-		for (String item : items)
-			addUserToList(name, item);
+	/**
+	 * 
+	 * 
+	 * @param product
+	 * @param users
+	 */
+	public void handleLoginEvent(String product, User user) {
+		
+		if (!relevantUsers.containsKey(user.getName()))
+			relevantUsers.put(user.getName(), user);
+			
+		addUserToList(user.getName(), product);
 	}
 
 	public boolean handleLogoutEvent(String name) {
@@ -326,20 +332,16 @@ public class Mediator implements WSClientMediator {
 		return inStartupPhase;
 	}
 	
-	public void fetchRelevantUsers() {
-		
+	public void fetchRelevantUsers(String product) {	
 		inStartupPhase = false;
 
-		if (!getNetMed().fetchRelevantUsers(
-				new Seller(mgr.getUserName(), this.serverIp, this.serverPort,
-							mgr.getProducts()))) {
+		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort,
+				new Vector<String>());
 
+		seller.getProducts().add(product);
+
+		if (!getNetMed().fetchRelevantUsers(seller))
 			logger.error("Failed to issue current user list refresh");
-		}
-	}
-	
-	public void postMainWindowInit() {
-		
 	}
 
 	/* 
@@ -395,21 +397,22 @@ public class Mediator implements WSClientMediator {
 	 * @param price - price value, depends on action type
 	 */
 	public void sendNotifications(int action, String userName, String product, int price) {
-		
+
 		Vector<User> destinations = new Vector<User>();
-		
+
 		/* here we build the destinations depending on the given command */
 		switch (action) {
 		case RequestTypes.REQUEST_LAUNCH_OFFER:
 		case RequestTypes.REQUEST_DROP_OFFER:
+			logger.debug("Sending offer request notification");
 			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-				if (entry.getValue().getItems().contains(product)) {
+				if (entry.getValue().getProducts().contains(product)) {
 					
 					destinations.add(entry.getValue());
 				}
 			}
 			break;
-		
+
 		/* assumes it can logically be called (we don't have the highest bid) */
 		case RequestTypes.REQUEST_DROP_AUCTION:
 			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
@@ -420,7 +423,7 @@ public class Mediator implements WSClientMediator {
 				}
 			}
 			break;
-		
+
 		/* 
 		 * two-way send command:
 		 * seller->buyer && buyer->notifies all other sellers if best bid made
@@ -433,13 +436,13 @@ public class Mediator implements WSClientMediator {
 			}
 
 			return;
-		
+
 		/*
 		 * accept offer :  send ACCEPT_OFFER to the winner
-		 *  (buyer pov)         DROP_OFFER_REQ to the other participants
+		 *  (buyer pov)         DROP_OFFER to the other participants
 		 */
 		case RequestTypes.REQUEST_ACCEPT_OFFER:
-		
+
 			Vector<User> otherDestinations = new Vector<User>();
 			boolean found = false;
 		
@@ -453,7 +456,7 @@ public class Mediator implements WSClientMediator {
 					continue;
 				}
 				
-				if (seller.getItems().contains(product)) {
+				if (seller.getProducts().contains(product)) {
 				
 					otherDestinations.add(seller);
 				}
@@ -483,7 +486,7 @@ public class Mediator implements WSClientMediator {
 				if (!entry.getKey().equals(userName)) {
 					User seller = entry.getValue();
 	
-					if (seller.getItems().contains(product)) {
+					if (seller.getProducts().contains(product)) {
 					
 						otherDestinations.add(seller);
 					}
@@ -508,7 +511,7 @@ public class Mediator implements WSClientMediator {
 					otherDestinations = new Vector<User>();						
 					for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
 						seller = e.getValue();
-						if (seller.getItems().contains(product) && hasMadeOffer(seller)) {
+						if (seller.getProducts().contains(product) && hasMadeOffer(seller)) {
 						
 							otherDestinations.add(seller);
 						}
@@ -527,9 +530,11 @@ public class Mediator implements WSClientMediator {
 					logger.debug("Failed to send network Notifications!");
 				}
 			}
-			return;
+			
+			break;
 		}
-		if (!netMed.sendNotifications(action, getUserName(), product, price, destinations)) {
+		
+		if (!netMed.sendNotifications(action, userName, product, price, destinations)) {
 			logger.debug("Failed to send network Notifications!");
 		}
 	}

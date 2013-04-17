@@ -19,7 +19,7 @@ public class LaunchOfferReqComm implements Command {
 		String productName = med.getProduct(row, col);
 
 		if (med.startupPhase()) {
-			med.fetchRelevantUsers();
+			med.fetchRelevantUsers(productName);
 		}
 
 		logger.debug("Launching offer");

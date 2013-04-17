@@ -51,7 +51,7 @@ public abstract class State {
 	}
 	
 	public Vector<String> getProducts() {
-		return user.getItems();
+		return user.getProducts();
 	}
 	
 	public abstract User createUser(String name, String ip, int port, Vector<String> items);

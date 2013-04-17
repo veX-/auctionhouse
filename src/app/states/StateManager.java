@@ -65,8 +65,8 @@ public class StateManager {
 		return currentState.receiveStatusUpdate(action, name, product, price);
 	}
 
-	public User createUser(String name, String ip, int port, Vector<String> items) {
-		return currentState.createUser(name, ip, port, items);
+	public User createUser(String name, String ip, int port, Vector<String> products) {
+		return currentState.createUser(name, ip, port, products);
 	}
 	
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {

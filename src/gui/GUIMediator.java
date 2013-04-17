@@ -15,8 +15,6 @@ public interface GUIMediator {
 	public boolean logOut();
 
 	public void registerProductsView(ProductsView pView);
-	
-	public void postMainWindowInit();
 
 	public Map<String, Command> getContextMenuItems(int row, int listIndex);
 

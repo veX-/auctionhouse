@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import app.Mediator;
+import app.model.Buyer;
 import app.model.Seller;
 import app.model.User;
 import app.states.RequestTypes;
@@ -66,65 +67,72 @@ public class NetworkServer extends Thread {
 
 			/* already logged in from another place! */
 			if (systemUsers.get(userName) != null) {
-				
+
 				med.getNetMed().sendNotifications(RequestTypes.SYSTEM_LOGIN_FAILURE,
 						"", "", 0, dests);
 
 				return false;
 			}
-			
+
 			System.out.println("[Login Server]: Sending ACK back to " + nn.getIp() + " " + nn.getPort());
-			
+
+			/* just an ACK type message replied to the user end application */
 			med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
 					nn.getIp(), nn.getPort(), null);
 
 			Vector<String> userProducts = nn.getProducts();
 
-			systemUsers.put(userName,
-							new Seller(userName, nn.getIp(), nn.getPort(), userProducts));
+			if (nn.getType().equals(User.buyerType))
+				systemUsers.put(userName,
+						new Buyer(userName, nn.getIp(), nn.getPort(), userProducts));
+			else
+				systemUsers.put(userName,
+						new Seller(userName, nn.getIp(), nn.getPort(), userProducts));
 
 			break;
-			
+
+		/* this is only made by buyers! */
 		case RequestTypes.REQUEST_RELEVANT_USERS:
 			userName = nn.getName();
-			userProducts = nn.getProducts();
+			String buyerProduct = nn.getProduct();
+
+			Vector<String> buyerProds = new Vector<String>();
+
+			buyerProds.add(buyerProduct);
 			
+			System.out.println("[Login Server][Relevant users]: Searching prod " + buyerProduct);
+
 			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
-				
-				if (e.getKey().equals(userName))
+
+				if (e.getKey().equals(userName) ||
+						e.getValue().getType().equals(User.buyerType))
 					continue;
+
+				User seller = e.getValue();
 				
-				User user = e.getValue();
-				Vector<String> commonProducts = new Vector<String>();
-				
-				for (String s : user.getItems()) {
-					if (userProducts.contains(s)) {
-						commonProducts.add(s);
-					}
-				}
-				
-				if (commonProducts.size() > 0) {
-					
+				System.out.println("[Login Server][Relevant users]: Found seller: " + seller);
+
+				if (seller.getProducts().contains(buyerProduct)) {
+
+					Seller s = new Seller(seller.getName(), seller.getIp(),
+											seller.getPort(), buyerProds);
+
 					med.getNetMed().sendLoginNotification(RequestTypes.SYSTEM_NEW_LOGIN_EVENT,
-							nn.getIp(), nn.getPort(),
-							new Seller(e.getKey(), user.getIp(), user.getPort(), commonProducts));
-					
-					med.getNetMed().sendLoginNotification(RequestTypes.SYSTEM_NEW_LOGIN_EVENT,
-							user.getIp(), user.getPort(),
-							new Seller(userName, nn.getIp(), nn.getPort(), commonProducts));
+							nn.getIp(), nn.getPort(), s);
 				}
 			}
+
 			break;
-			
+
 		case RequestTypes.REQUEST_LOGOUT:
 			
-			userProducts = systemUsers.get(userName).getItems();
+			userProducts = systemUsers.get(userName).getProducts();
 		
 			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
 			
 				User user = e.getValue();
 				
-				for (String s : user.getItems()) {
+				for (String s : user.getProducts()) {
 					if (userProducts.contains(s)) {
 						
 						med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
@@ -206,8 +214,7 @@ public class NetworkServer extends Thread {
 						
 						if (nn.getAction() == RequestTypes.SYSTEM_NEW_LOGIN_EVENT) {
 							
-							med.handleLoginEvent(nn.getIp(), nn.getPort(), nn.getName(),
-									nn.getProducts());
+							med.handleLoginEvent(nn.getProducts().get(0), nn.getUser());
 							
 							return;
 						}
