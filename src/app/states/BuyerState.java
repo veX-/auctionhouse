@@ -93,6 +93,9 @@ public class BuyerState extends State {
 			int price) {
 
 		switch (action) {
+		case RequestTypes.REQUEST_LAUNCH_OFFER:
+			med.addUserToList(name, product);
+			break;
 		case RequestTypes.REQUEST_MAKE_OFFER:
 			int minOffer = price;
 			Integer[] offers = med.getOffersList(product);
