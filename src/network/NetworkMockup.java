@@ -32,7 +32,7 @@ public class NetworkMockup implements NetworkMediator {
 	private final int MIN_FILE_SIZE = 256;
 	private final int MAX_FILE_SIZE = 2048;
 	private final int CHUNK_SIZE = 32;
-	private final long NETWORK_DELAY = 500;
+	private final long NETWORK_DELAY = 175;
 
 	private Mediator med;
 
@@ -122,6 +122,9 @@ public class NetworkMockup implements NetworkMediator {
 		int noOfChunks = rnd.nextInt((MAX_FILE_SIZE - MIN_FILE_SIZE) / CHUNK_SIZE) +
 										MIN_FILE_SIZE / CHUNK_SIZE;
 
+		med.updateGui(RequestTypes.REQUEST_INITIAL_TRANSFER, user.getName(),
+				product, noOfChunks);
+		
 		/* first send the initial request, with total file size */
 		nn = new NetworkNotification(RequestTypes.REQUEST_INITIAL_TRANSFER,
 						sender, product, noOfChunks);
@@ -137,10 +140,13 @@ public class NetworkMockup implements NetworkMediator {
 			e.printStackTrace();
 		}
 
-		for (int i = 0; i < noOfChunks; i++) {
+		for (int i = 1; i <= noOfChunks; i++) {
 
+			med.updateGui(RequestTypes.REQUEST_TRANSFER, user.getName(),
+					product, i);
+			
 			nn = new NetworkNotification(RequestTypes.REQUEST_TRANSFER,
-						user.getName(), product, i, makeChunk());
+						sender, product, i, makeChunk());
 
 			if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
 				System.out.println("[NETWORK]: Failed to send chunk to " + user);

@@ -215,7 +215,7 @@ public class NetworkServer extends Thread {
 						case RequestTypes.SYSTEM_NEW_LOGIN_EVENT:
 							med.handleLoginEvent(nn.getProducts().get(0), nn.getUser());
 							break;
-							
+
 						case RequestTypes.REQUEST_LOGIN:
 							med.getNetMed().setLoginSuccess();
 							return;
