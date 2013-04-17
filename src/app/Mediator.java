@@ -37,7 +37,10 @@ public class Mediator implements WSClientMediator {
 	private Logger logger = null;
 	private String serverIp;
 	private int serverPort;
-	private boolean inStartupPhase;
+	/**
+	 * Association on product name and flag which tells if it's startup phase for the product.
+	 */
+	private Vector<String> inStartupPhase;
 	
 	private HashMap<String, User> relevantUsers;
 
@@ -48,7 +51,7 @@ public class Mediator implements WSClientMediator {
 		mgr = new StateManager(this);
 		netMed = new NetworkMockup(this);
 		guiMed = new GUIMediatorImpl(this);
-		this.inStartupPhase = true;
+		this.inStartupPhase = new Vector<String>();
 
 		this.relevantUsers = new HashMap<String, User>();
 	}
@@ -67,6 +70,7 @@ public class Mediator implements WSClientMediator {
 
 	public void updateProductsModel(String userName, String product, Integer price, int col) {
 		products.updateProductsModel(userName, product, price, col);
+		guiMed.repaint();
 	}
 
 	/**
@@ -339,10 +343,6 @@ public class Mediator implements WSClientMediator {
 		return mgr.receiveStatusUpdate(action, name, product, price);
 	}
 
-	public boolean startupPhase() {
-		return inStartupPhase;
-	}
-
 	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
 		User u = relevantUsers.get(userName);
 		
@@ -356,8 +356,12 @@ public class Mediator implements WSClientMediator {
 		}
 	}
 	
-	public void fetchRelevantUsers(String product) {	
-		inStartupPhase = false;
+	public boolean fetchRelevantUsers(String product) {
+		boolean flag = !inStartupPhase.contains(product);
+		if (flag)
+			inStartupPhase.add(product);
+		else
+			return false;
 
 		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort,
 				new Vector<String>());
@@ -366,6 +370,8 @@ public class Mediator implements WSClientMediator {
 
 		if (!getNetMed().fetchRelevantUsers(seller))
 			logger.error("Failed to issue current user list refresh");
+
+		return flag;
 	}
 
 	/* 

@@ -96,10 +96,10 @@ public class BuyerState extends State {
 			med.addUserToList(name, product);
 			break;
 		case RequestTypes.REQUEST_MAKE_OFFER:
-			med.updateStatusList(name, product, price, State.STATE_OFFERMADE);
+			checkBestOffer(name, product, price);
+			med.updateStatusList(name, product, price, State.STATE_OFFERMADE);			
 			break;
 		case RequestTypes.REQUEST_DROP_AUCTION:
-			logger.debug("Drop auction for name " + name + " product " + product);
 			med.removeUserFromList(name, product);
 			break;
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:
@@ -147,7 +147,8 @@ public class BuyerState extends State {
 
 	/* Check if the offer made is the best for current product. */
 	public void checkBestOffer(String name, String product, int price) {
-		int minOffer = price;
+		logger.debug("Checking for best offer");
+		int minOffer = price + 1;
 		Integer[] offers = med.getOffersList(product);
 		if (offers != null) {
 			for (Integer offer : offers)
@@ -155,9 +156,11 @@ public class BuyerState extends State {
 					minOffer = (minOffer > offer) ? offer : minOffer;
 			if (minOffer > -1 && price < minOffer)
 				/* Notify everyone the best offer. */
+				minOffer = price;
 				med.sendNotifications(RequestTypes.REQUEST_MAKE_OFFER,
 						name, product, price);
 		}
+		logger.debug("Best offer is " + minOffer);
 	}
 
 	/**

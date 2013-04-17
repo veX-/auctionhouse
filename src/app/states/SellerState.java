@@ -92,6 +92,7 @@ public class SellerState extends State {
 			checkBestOffer(userName, product, -1);
 			break;
 		case RequestTypes.REQUEST_MAKE_OFFER:
+			logger.debug("Best offer update " + price);
 			med.updateProductsModel(userName, product, price, BEST_OFFER_COL);
 			break;
 		case RequestTypes.REQUEST_ACCEPT_OFFER:

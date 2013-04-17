@@ -290,6 +290,7 @@ public class ProductListModel extends DefaultTableModel {
 
 	public void updateProductsModel(String userName, String product, Integer price, int col) {
 		Integer row = prodName2Index.get(product);
+
 		int listIndex;
 		if (row == null)
 			return;
@@ -298,6 +299,7 @@ public class ProductListModel extends DefaultTableModel {
 				((JList<String>) getValueAt(row, LIST_COL))
 				.getModel();
 		listIndex = model.indexOf(userName);
+
 		if (listIndex < 0)
 			return;
 		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)
