@@ -120,6 +120,7 @@ public class BuyerState extends State {
 			med.transfer(name, product, price);
 		case RequestTypes.REQUEST_LOGOUT:
 			med.removeUserFromList(name);
+			med.forgetRelevantUser(name);
 			break;
 		default:
 			System.out.println("Invalid action: " + action);

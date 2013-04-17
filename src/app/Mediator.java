@@ -81,6 +81,10 @@ public class Mediator implements WSClientMediator {
 		return this.relevantUsers;
 	}
 
+	public void forgetRelevantUser(String userName) {
+		this.relevantUsers.remove(userName);
+	}
+
 	public String[] getUsersList(int row) {
 		return products.getUsersList(row);
 	}

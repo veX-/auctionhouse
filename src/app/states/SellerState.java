@@ -96,6 +96,7 @@ public class SellerState extends State {
 			med.transfer(userName, product, price);
 		case RequestTypes.REQUEST_LOGOUT:
 			med.removeUserFromList(userName);
+			med.forgetRelevantUser(userName);
 			break;
 		default:
 			System.out.println("Invalid action: " + action);
