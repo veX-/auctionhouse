@@ -297,6 +297,8 @@ public class ProductListModel extends DefaultTableModel {
 		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)
 				((JList<Integer>) getValueAt(row, col))
 				.getModel();
+		while (model1.getSize() <= listIndex)
+			model1.addElement(null);
 		model1.set(listIndex, price);
 	}
 

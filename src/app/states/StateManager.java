@@ -79,4 +79,8 @@ public class StateManager {
 	public void updateColumns(ProductListModel model) {
 		currentState.updateColumns(model);
 	}
+
+	public void checkBestOffer(String userName, String productName, int value) {
+		currentState.checkBestOffer(userName, productName, value);
+	}
 }

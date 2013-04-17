@@ -59,7 +59,7 @@ public class BuyerState extends State {
 	public Map<String, Command> getServiceMenuItems(String status) {
 		Map<String, Command> items = null;
 		System.out.println(status);
-		if (status.equals(STATE_INACTIVE)) {
+		if (status.equals(STATE_INACTIVE) || status.equals(STATE_TRANSFERC)) {
 			items = new HashMap<String, Command>();
 			items.put("Launch offer request", new LaunchOfferReqComm(med));
 		} else if (!status.equals(STATE_OFFERACC)
@@ -97,17 +97,6 @@ public class BuyerState extends State {
 			med.addUserToList(name, product);
 			break;
 		case RequestTypes.REQUEST_MAKE_OFFER:
-			int minOffer = price;
-			Integer[] offers = med.getOffersList(product);
-			if (offers != null) {
-				for (Integer offer : offers)
-					if (offer != null)
-						minOffer = (minOffer > offer) ? offer : minOffer;
-				if (minOffer > -1 && price < minOffer)
-					/* Notify everyone the best offer. */
-					med.sendNotifications(RequestTypes.REQUEST_MAKE_OFFER,
-							name, product, price);
-			}
 			med.updateStatusList(name, product, price, State.STATE_OFFERMADE);
 			break;
 		case RequestTypes.REQUEST_DROP_AUCTION:
@@ -155,6 +144,21 @@ public class BuyerState extends State {
 	}
 	public void updateColumns(ProductListModel model) {
 		/* Buyer doesn't have specific columns */
+	}
+
+	/* Check if the offer made is the best for current product. */
+	public void checkBestOffer(String name, String product, int price) {
+		int minOffer = price;
+		Integer[] offers = med.getOffersList(product);
+		if (offers != null) {
+			for (Integer offer : offers)
+				if (offer != null)
+					minOffer = (minOffer > offer) ? offer : minOffer;
+			if (minOffer > -1 && price < minOffer)
+				/* Notify everyone the best offer. */
+				med.sendNotifications(RequestTypes.REQUEST_MAKE_OFFER,
+						name, product, price);
+		}
 	}
 
 	/**

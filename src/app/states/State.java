@@ -61,4 +61,6 @@ public abstract class State {
 	public abstract int getColumnCount();
 	public abstract void updateColumns(ProductListModel model);
 	public abstract boolean allowedLogout();
+
+	public abstract void checkBestOffer(String userName, String productName, int value);
 }

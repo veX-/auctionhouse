@@ -73,11 +73,6 @@ public class SellerState extends State {
 			items.put("Drop auction", new DropAuctionComm(med));
 			items.put("Make offer", new MakeOfferComm(med));
 		}
-		else if (status.equals(STATE_OFFERMADE)) {
-			if (items == null)
-				items = new HashMap<String, Command>();
-			items.put("Drop auction", new DropAuctionComm(med));
-		}
 
 		return items;
 	}
@@ -93,6 +88,7 @@ public class SellerState extends State {
 			break;
 		case RequestTypes.REQUEST_DROP_OFFER:
 			med.removeUserFromList(userName, product);
+			checkBestOffer(userName, product, -1);
 			break;
 		case RequestTypes.REQUEST_MAKE_OFFER:
 			med.updateProductsModel(userName, product, price, BEST_OFFER_COL);
@@ -155,6 +151,18 @@ public class SellerState extends State {
 			columnData[i] = new JList<Integer>(colModel);
 		}
 		model.addColumn(BEST_OFFER_COL_NAME, columnData);
+	}
+
+	/* Update BEST_OFFER_COL if needed. */
+	public void checkBestOffer(String userName, String productName, int value) {
+		if (value == -1)
+			med.updateProductsModel(userName, productName, null, BEST_OFFER_COL);
+		else {
+			Integer bestOffer = (Integer)med.getValueFromCol(userName, productName, BEST_OFFER_COL);
+			if (bestOffer == null || bestOffer > value)
+				/* The best offer is the one which favors the buyer. */
+				med.updateProductsModel(userName, productName, value, BEST_OFFER_COL);
+		}
 	}
 
 	/**

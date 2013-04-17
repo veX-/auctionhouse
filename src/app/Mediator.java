@@ -97,6 +97,10 @@ public class Mediator implements WSClientMediator {
 		return products.getOffersList(productName);
 	}
 
+	public Object getValueFromCol(String userName, String productName, int col) {
+		return products.getValueFromCol(userName, productName, col);
+	}
+
 	public void updateUsersList(String productName, Map<String, String> names) {
 		products.updateUsersList(productName, names);
 		guiMed.repaint();
@@ -119,6 +123,7 @@ public class Mediator implements WSClientMediator {
 		case State.STATE_TRANSFERP:
 			//TODO process value and don't break! (setStatus first)
 		case State.STATE_OFFERMADE:
+			mgr.checkBestOffer(userName, productName, value);
 		case State.STATE_OFFERE:
 			products.setStatus(userName, productName, value, status);
 			break;
@@ -386,7 +391,7 @@ public class Mediator implements WSClientMediator {
 		}
 		return false;
 	}
-	
+
 	public int getBestOffer(String product) {
 		int bestOffer = Integer.MAX_VALUE;
 		

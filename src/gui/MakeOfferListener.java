@@ -31,6 +31,8 @@ public class MakeOfferListener extends MouseAdapter {
 	
 	public void mousePressed(MouseEvent e) {
 		String price = JOptionPane.showInputDialog(parent,"Enter the price:", -1);
+		if (price == null)
+			return;
 		if (!price.equals("")) {
 			try {
 				int offerredPrice = Integer.parseInt(price);
