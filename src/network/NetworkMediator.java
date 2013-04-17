@@ -23,4 +23,7 @@ public interface NetworkMediator {
 	
 	public boolean sendNotifications(int action, String userName, String product,
 			int price, Vector<User> destinations);
+	
+	public boolean sendNotifications(int action, String userName, String ip, int port,
+			String product, Vector<User> destinations);
 }

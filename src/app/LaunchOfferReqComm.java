@@ -20,6 +20,12 @@ public class LaunchOfferReqComm implements Command {
 
 		if (med.startupPhase()) {
 			med.fetchRelevantUsers(productName);
+			
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 
 		logger.debug("Launching offer");

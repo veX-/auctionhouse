@@ -207,24 +207,24 @@ public class NetworkServer extends Thread {
 							return;
 						}
 
-						if (nn.getAction() == RequestTypes.SYSTEM_LOGIN_FAILURE) {
+						switch (nn.getAction()) {
+						case RequestTypes.SYSTEM_LOGIN_FAILURE:
 							med.getNetMed().setLoginFailed();
 							return;
-						}
-						
-						if (nn.getAction() == RequestTypes.SYSTEM_NEW_LOGIN_EVENT) {
 							
+						case RequestTypes.SYSTEM_NEW_LOGIN_EVENT:
 							med.handleLoginEvent(nn.getProducts().get(0), nn.getUser());
+							break;
 							
+						case RequestTypes.REQUEST_LOGIN:
+							med.getNetMed().setLoginSuccess();
 							return;
+							
+						case RequestTypes.REQUEST_LAUNCH_OFFER:
+							med.saveUserConnectInfo(nn.getName(), nn.getProduct(),
+									nn.getIp(), nn.getPort());
 						}
 						
-						if (nn.getAction() == RequestTypes.REQUEST_LOGIN) {
-							med.getNetMed().setLoginSuccess();
-							
-							return;
-						}
-
 						med.updateGui(nn.getAction(), nn.getName(),
 								nn.getProduct(), nn.getPrice());
 						

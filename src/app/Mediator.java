@@ -309,13 +309,13 @@ public class Mediator implements WSClientMediator {
 	 * 
 	 * 
 	 * @param product
-	 * @param users
+	 * @param user
 	 */
 	public void handleLoginEvent(String product, User user) {
-		
+
 		if (!relevantUsers.containsKey(user.getName()))
 			relevantUsers.put(user.getName(), user);
-			
+
 		addUserToList(user.getName(), product);
 	}
 
@@ -330,6 +330,19 @@ public class Mediator implements WSClientMediator {
 
 	public boolean startupPhase() {
 		return inStartupPhase;
+	}
+
+	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
+		User u = relevantUsers.get(userName);
+		
+		if (u == null) {
+			Vector<String> products = new Vector<String>();
+			products.add(product);
+			relevantUsers.put(userName, new Seller(userName, ip, port, products));
+			
+		} else if (!u.getProducts().contains(product)) {
+			u.getProducts().add(product);
+		}
 	}
 	
 	public void fetchRelevantUsers(String product) {	
@@ -411,8 +424,13 @@ public class Mediator implements WSClientMediator {
 					logger.debug("Launch offer: dest " + entry.getValue());
 					destinations.add(entry.getValue());
 				}
+				
+				if (!netMed.sendNotifications(action, userName, this.serverIp,
+										this.serverPort, product, destinations)) {
+					logger.debug("Failed to send network Notifications!");
+				}
 			}
-			break;
+			return;
 
 		/* assumes it can logically be called (we don't have the highest bid) */
 		case RequestTypes.REQUEST_DROP_AUCTION:
@@ -430,7 +448,10 @@ public class Mediator implements WSClientMediator {
 		 * seller->buyer && buyer->notifies all other sellers if best bid made
 		 */
 		case RequestTypes.REQUEST_MAKE_OFFER:
+			logger.debug("Made offer: " + price);
 			destinations = mgr.computeDestinations(action, userName, product, price);
+			
+			System.out.println("Sending MAKE_OFFER to " + destinations.size() + " users!");
 
 			if (!netMed.sendNotifications(action, mgr.getUserName(), product, price, destinations)) {
 				logger.debug("Failed to send network Notifications!");

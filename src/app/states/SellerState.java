@@ -131,9 +131,12 @@ public class SellerState extends State {
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {
 		Vector<User> destinations = new Vector<User>();
 		
+		System.out.print("[Mediator]: Searching for user " + userName + "... ");
 		User buyer = med.getRelevantUsers().get(userName);
 		if (buyer != null)
 			destinations.add(buyer);
+		
+		System.out.println(destinations.size() > 0 ? "found!" : "not found!");
 		
 		return destinations;
 	}

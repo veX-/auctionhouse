@@ -249,6 +249,29 @@ public class NetworkMockup implements NetworkMediator {
 		return true;
 	}
 	
+	public boolean sendNotifications(int action, String userName, String ip, int port,
+							String product, Vector<User> destinations) {
+		
+		for (User user : destinations) {
+			
+			System.out.println("[NETWORK]: Sending to dest: " + user);
+			
+			NetworkNotification nn = new NetworkNotification(action, userName,
+					product, -1);
+
+			nn.setIp(ip);
+			nn.setPort(port);
+			nn.setProduct(product);
+
+			if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
+				System.out.println("[NETWORK]: Network send failed!");
+				return false;
+			}
+		}
+	
+		return true;	
+	}
+	
 	/**
 	 * Submits a login notification (only called in Login Server mode)
 	 */

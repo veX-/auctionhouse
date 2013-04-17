@@ -94,8 +94,16 @@ public class NetworkNotification implements java.io.Serializable {
 		return ip;
 	}
 	
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+	
 	public int getPort() {
 		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 	
 	public User getUser() {
@@ -104,6 +112,10 @@ public class NetworkNotification implements java.io.Serializable {
 	
 	public Vector<String> getProducts() {
 		return products;
+	}
+	
+	public void setProducts(Vector<String> products) {
+		this.products = products;
 	}
 	
 	public byte[] getChunk() {
