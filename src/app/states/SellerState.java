@@ -87,6 +87,7 @@ public class SellerState extends State {
 				med.updateProductsModel(userName, product, null, BEST_OFFER_COL);
 			break;
 		case RequestTypes.REQUEST_DROP_OFFER:
+			med.updateProductsModel(userName, product, null, BEST_OFFER_COL);
 			med.removeUserFromList(userName, product);
 			checkBestOffer(userName, product, -1);
 			break;

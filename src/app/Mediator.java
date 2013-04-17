@@ -226,10 +226,6 @@ public class Mediator implements WSClientMediator {
 
 		try {
 			s = new Scanner(f);
-			s.nextLine(); //username
-			s.nextLine(); //password
-			s.nextLine(); //type
-
 			/* Read the list of products. */
 			products = new Vector<String>();
 			while (s.hasNextLine()) {
