@@ -1,0 +1,45 @@
+Proiect: ah (auction house)
+Echipa: Eng4AH
+    - membri: 
+      - Liviu Chircu
+      - Andreea Hodea
+    - grupa: 341C3
+
+Etapa 1:
+
+Descriere
+=========
+Intregul proiect are ca scop construirea unei aplicatii pentru un sistem de
+licitatii inverse intre cumparatori si furnizori.
+
+Prima etapa presuspune familiarizarea cu proiectul, cu cerintele si componentele
+acestuia, precum si implementarea interfetei grafice.
+
+Implementare
+============
+Structura proiectului:
+app
+	- nucleul aplicatiei
+	- cuprinde clasa Main care lanseaza aplicatia
+	- mediatorul: este un mediator local care pastreaza referinte la
+	mediatorul global, dintre cele trei componente ale aplicatiei
+	- modelul
+	- controlul prin command pattern
+	- starile: stare cumparator si stare furnizor
+gui
+	- componenta grafica
+network
+	- componenta de retea
+wsc
+	- componenta wb service client
+
+Nota
+====
+Ca dificultate am intampinat complexitatea aplicatiei si, desi am reusit sa
+delimitam in mare masura componentele, implementarea celorlalte doua componente
+va aduce modificari in structura curenta.
+
+Rulare
+======
+- ant
+- in radacina proiectului se regaseste build.xml
