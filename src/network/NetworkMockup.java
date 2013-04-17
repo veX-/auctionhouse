@@ -52,9 +52,13 @@ public class NetworkMockup implements NetworkMediator {
 	private void connect(SelectionKey key) throws IOException {
 
 		SocketChannel socketChannel = (SocketChannel) key.channel();
-		if (!socketChannel.finishConnect()) {
-			System.err.println("[NETWORK]: finishConnect error");
+		try {
+			socketChannel.finishConnect();
+		} catch (IOException e) {
+			System.out.println("[NETWORK]: Login server is offline!");
 			running = false;
+			
+			return;
 		}
 
 		key.interestOps(SelectionKey.OP_WRITE);

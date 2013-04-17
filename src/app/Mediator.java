@@ -408,6 +408,7 @@ public class Mediator implements WSClientMediator {
 			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
 				if (entry.getValue().getProducts().contains(product)) {
 					
+					logger.debug("Launch offer: dest " + entry.getValue());
 					destinations.add(entry.getValue());
 				}
 			}

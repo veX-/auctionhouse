@@ -47,7 +47,12 @@ public class ProductListModel extends DefaultTableModel {
 	}
 
 	public Class<? extends Object> getColumnClass(int col) {
-		return getValueAt(0, col).getClass();
+		Object o = getValueAt(0, col);
+		
+		if (o == null)
+			return Object.class;
+		
+		return o.getClass();
 	}
 
 	@Override
