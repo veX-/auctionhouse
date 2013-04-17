@@ -3,3 +3,8 @@ Team: Eng4AH
     - members: 
       - Liviu Chircu
       - Andreea Hodea
+
+Quick Startup Guide
+
+-> Launch application in Login Server Mode with 'java Main ip port'
+-> Launch clients with 'java Main ip port configFile'
