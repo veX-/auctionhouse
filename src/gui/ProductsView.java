@@ -168,6 +168,8 @@ public class ProductsView extends JFrame {
 			this.pack();
 			setLocationRelativeTo(null);
 			this.getContentPane().repaint();
+			
+			med.postGUIInit();
 		}
 	}
 

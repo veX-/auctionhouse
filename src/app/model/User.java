@@ -39,6 +39,13 @@ abstract public class User implements java.io.Serializable {
 			this.bids = new Vector<Integer>(products.size());
 	}
 	
+	public User(String name, String ip, int port) {
+		this(name, "");
+		this.ip = ip;
+		this.port = port;
+		this.products = new Vector<String>();
+	}
+	
 	public String getName() {
 		return name;
 	}

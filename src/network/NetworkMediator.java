@@ -21,7 +21,9 @@ public interface NetworkMediator {
 	
 	public boolean sendLoginNotification(int action, String ip, int port, User user);
 	
-	public boolean fetchRelevantUsers(User user);
+	public boolean fetchRelevantBuyers(User user);
+	
+	public boolean fetchRelevantSellers(User user);
 	
 	public boolean sendNotifications(int action, String userName, String product,
 			int price, Vector<User> destinations);

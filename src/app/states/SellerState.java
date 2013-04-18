@@ -77,6 +77,10 @@ public class SellerState extends State {
 		return items;
 	}
 
+	public void postGUIInit() {
+		med.fetchRelevantBuyers();
+	}
+	
 	/* Update the GUI with received info from network _on the EDT_ !! */
 	public boolean receiveStatusUpdate(int action, String userName, String product,
 			int price) {

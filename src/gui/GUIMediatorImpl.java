@@ -57,5 +57,8 @@ public class GUIMediatorImpl implements GUIMediator {
 	public TableModel getProducts() {
 		return med.getProducts();
 	}
-
+	
+	public void postGUIInit() {
+		med.postGUIInit();
+	}
 }

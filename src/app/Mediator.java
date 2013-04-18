@@ -15,12 +15,14 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.table.TableModel;
 
-import org.apache.log4j.Logger;
-
 import network.NetworkMediator;
 import network.NetworkMockup;
 import network.NetworkServer;
+
+import org.apache.log4j.Logger;
+
 import wsc.WSClientMediator;
+import app.model.Buyer;
 import app.model.Seller;
 import app.model.User;
 import app.states.RequestTypes;
@@ -355,6 +357,44 @@ public class Mediator implements WSClientMediator {
 	public boolean updateGui(int action, String name, String product, int price) {
 		return mgr.receiveStatusUpdate(action, name, product, price);
 	}
+	
+	public void postGUIInit() {
+		mgr.postGUIInit();
+	}
+	
+	/**
+	 * Notifies a new system seller of any currently open offer request
+	 * 
+	 * @param seller - newly logged in seller
+	 */
+		public void handleNewSystemSeller(User seller) {
+	
+			Vector<String> sellerProds = seller.getProducts();
+	
+			Vector<User> destinations = new Vector<User>();
+			destinations.add(seller);
+			
+			logger.debug("Handling new system seller: " + seller.getName());
+			
+			Vector<String> localProdList = new Vector<String>();
+			seller.setProducts(localProdList);
+			
+			for (String prod : mgr.getProducts()) {
+				
+				String status = products.getStatus(prod);
+				
+				if (sellerProds.contains(prod)  && !status.equals(State.STATE_INACTIVE) &&
+						!status.equals(State.STATE_TRANSFERP)) {
+					System.out.println("Notifying open auction for " + prod);
+					netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
+							mgr.getUserName(), this.serverIp,
+							this.serverPort, prod, destinations);
+					
+					localProdList.add(prod);
+					relevantUsers.put(seller.getName(), seller);
+				}
+			}
+		}
 
 	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
 		User u;
@@ -372,24 +412,34 @@ public class Mediator implements WSClientMediator {
 		}
 	}
 	
-	public boolean fetchRelevantUsers(String product) {
+	public boolean fetchRelevantSellers(String product) {
 		boolean flag = !inStartupPhase.contains(product);
 		if (flag)
 			inStartupPhase.add(product);
 		else
 			return false;
 
-		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort,
-				new Vector<String>());
+		Buyer buyer = new Buyer(mgr.getUserName(), this.serverIp, this.serverPort);
 
-		seller.getProducts().add(product);
+		buyer.getProducts().add(product);
 
-		if (!getNetMed().fetchRelevantUsers(seller))
+		if (!getNetMed().fetchRelevantSellers(buyer))
 			logger.error("Failed to issue current user list refresh");
 
 		return flag;
 	}
-
+	
+	public void fetchRelevantBuyers() {
+				
+		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort);
+		
+		for (String prod : mgr.getProducts())
+			seller.getProducts().add(prod);
+		
+		if (!netMed.fetchRelevantBuyers(seller))
+			logger.error("Failed to issue buyer list refresh");
+	}
+	
 	/* 
 	 * TODO: prevents AcceptOffer (buyer PoV) from sending
 	 * DROP_OFFER messages to ALL potential sellers
@@ -461,14 +511,22 @@ public class Mediator implements WSClientMediator {
 						logger.debug("Launch offer: dest " + entry.getValue());
 						destinations.add(entry.getValue());
 					}
-
-					if (!netMed.sendNotifications(action, userName, this.serverIp,
-											this.serverPort, product, destinations)) {
-						logger.debug("Failed to send network Notifications!");
-					}
+				}
+				
+				if (!netMed.sendNotifications(action, userName, this.serverIp,
+						this.serverPort, product, destinations)) {
+					logger.debug("Failed to send network Notifications!");
 				}
 			}
 
+			return;
+		
+		case RequestTypes.REQUEST_RELEVANT_BUYERS:
+			if (!netMed.sendNotifications(action, userName, this.serverIp,
+					this.serverPort, product, destinations)) {
+				logger.debug("Failed to send network Notifications!");
+			}
+			
 			return;
 
 		/* assumes it can logically be called (we don't have the highest bid) */

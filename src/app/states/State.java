@@ -67,4 +67,6 @@ public abstract class State {
 	public abstract boolean allowedLogout();
 
 	public abstract void checkBestOffer(String userName, String productName, int value);
+	
+	public abstract void postGUIInit();
 }

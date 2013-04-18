@@ -101,9 +101,26 @@ public class NetworkServer extends Thread {
 						new Seller(userName, nn.getIp(), nn.getPort(), userProducts));
 
 			break;
+		/* this request is only made by sellers - it will fly off to the buyers! */
+		case RequestTypes.REQUEST_RELEVANT_BUYERS:
+		
+			User seller = new Seller(nn.getName(), nn.getIp(),
+								   nn.getPort(), nn.getProducts());
+		
+			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
+				User user = e.getValue();
+			
+				if (user.getType().equals(User.buyerType)) {
+					
+					med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
+							user.getIp(), user.getPort(), seller);								
+				}
+			}
+			 
+			break;
 
 		/* this is only made by buyers! */
-		case RequestTypes.REQUEST_RELEVANT_USERS:
+		case RequestTypes.REQUEST_RELEVANT_SELLERS:
 			userName = nn.getName();
 			String buyerProduct = nn.getProduct();
 
@@ -119,7 +136,7 @@ public class NetworkServer extends Thread {
 						e.getValue().getType().equals(User.buyerType))
 					continue;
 
-				User seller = e.getValue();
+				seller = e.getValue();
 				
 				logger.debug("[Login Server][Relevant users]: Found seller: " + seller);
 
@@ -227,12 +244,21 @@ public class NetworkServer extends Thread {
 							
 						case RequestTypes.SYSTEM_NEW_LOGIN_EVENT:
 							med.handleLoginEvent(nn.getProducts().get(0), nn.getUser());
-							break;
+							return;
 
 						case RequestTypes.REQUEST_LOGIN:
 							med.getNetMed().setLoginSuccess();
+
+							/* simple ACK */
+							if (nn.getUser() == null) {
+								med.getNetMed().setLoginSuccess();
+								return;
+							}
+
+							/* actually a new system login notification */
+							med.handleNewSystemSeller(nn.getUser());
 							return;
-							
+
 						case RequestTypes.REQUEST_LAUNCH_OFFER:
 							med.saveUserConnectInfo(nn.getName(), nn.getProduct(),
 									nn.getIp(), nn.getPort());

@@ -15,6 +15,11 @@ public class Seller extends User {
 		super(name, password);
 		this.type = "seller";
 	}
+	
+	public Seller(String name, String ip, int port) {
+		super(name, ip, port);
+		this.type = "buyer";
+	}
 
 	public Seller(String name, String ip, int port, Vector<String> items) {
 		super(name, ip, port, items);

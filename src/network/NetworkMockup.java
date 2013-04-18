@@ -55,7 +55,7 @@ public class NetworkMockup implements NetworkMediator {
 		try {
 			socketChannel.finishConnect();
 		} catch (IOException e) {
-			logger.fatal("[NETWORK]: Login server is offline!");
+			logger.fatal("[NETWORK]: Failed to connect to destination!");
 			running = false;
 			
 			return;
@@ -175,17 +175,32 @@ public class NetworkMockup implements NetworkMediator {
 		loginStatus = LOGIN_SUCCESS;
 	}
 
-	public boolean fetchRelevantUsers(User user) {
+	public boolean fetchRelevantBuyers(User user) {
+ 		
+ 		NetworkNotification nn = new NetworkNotification(
+ 				RequestTypes.REQUEST_RELEVANT_BUYERS, user);
+ 		
+ 		logger.debug("[NETWORK]: Fetching users...");
+		
+		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
+			logger.error("[NETWORK]: Failed to send relevant buyers request");
+			return false;
+		}
+
+		return true;
+	}
+	
+	public boolean fetchRelevantSellers(User user) {
 		
 		NetworkNotification nn = new NetworkNotification(
-				RequestTypes.REQUEST_RELEVANT_USERS, user);
+				RequestTypes.REQUEST_RELEVANT_SELLERS, user);
 		
 		nn.setProduct(user.getProducts().get(0));
 		
 		logger.debug("[NETWORK]: Fetching users...");
 		
 		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			logger.warn("[NETWORK]: Failed to send login request");
+			logger.warn("[NETWORK]: Failed to send relevant seller request");
 			return false;
 		}
 		

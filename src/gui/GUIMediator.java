@@ -24,4 +24,6 @@ public interface GUIMediator {
 
 	/* Communication from Mediator to an implementation of GUIMediator */
 	public void repaint();
+	
+	public void postGUIInit();
 }

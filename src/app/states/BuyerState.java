@@ -87,6 +87,12 @@ public class BuyerState extends State {
 		return items;
 	}
 
+	/* Buyers request seller lists from Central Server only
+	 * when they start auctions */
+	public void postGUIInit() {
+
+	}
+	
 	/* Update the GUI with received info from network _on the EDT_ */
 	public boolean receiveStatusUpdate(int action, String name, String product,
 			int price) {

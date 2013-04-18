@@ -24,7 +24,7 @@ public class LaunchOfferReqComm implements Command {
 		logger = Logger.getLogger(LaunchOfferReqComm.class.getName());
 		String productName = med.getProduct(row, col);
 
-		if (med.fetchRelevantUsers(productName)) {
+		if (med.fetchRelevantSellers(productName)) {
 			
 			try {
 				Thread.sleep(100);

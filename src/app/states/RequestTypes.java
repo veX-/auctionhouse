@@ -23,8 +23,9 @@ public class RequestTypes {
 	/* WS related actions */
 	public static final int REQUEST_LOGIN = 8;
 	public static final int REQUEST_LOGOUT = 9;
-	public static final int REQUEST_RELEVANT_USERS = 10;
-	public static final int SYSTEM_LOGIN_FAILURE = 11;
-	public static final int SYSTEM_NEW_LOGIN_EVENT = 12;
+	public static final int REQUEST_RELEVANT_BUYERS = 10;
+	public static final int REQUEST_RELEVANT_SELLERS = 11;
+	public static final int SYSTEM_LOGIN_FAILURE = 12;
+	public static final int SYSTEM_NEW_LOGIN_EVENT = 13;
 	
 }

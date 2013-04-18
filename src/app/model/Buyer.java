@@ -16,6 +16,11 @@ public class Buyer extends User {
 		this.type = "buyer";
 	}
 
+	public Buyer(String name, String ip, int port) {
+		super(name, ip, port);
+		this.type = "buyer";
+	}
+
 	public Buyer(String name, String ip, int port, Vector<String> items) {
 		super(name, ip, port, items);
 		this.type = "buyer";

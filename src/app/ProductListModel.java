@@ -114,6 +114,14 @@ public class ProductListModel extends DefaultTableModel {
 
 		return status;
 	}
+	
+	public String getStatus(String productName) {
+		Integer row = prodName2Index.get(productName);
+		if (row == null)
+			return null;
+		
+		return getStatus(row, null);
+	}
 
 	public String getStatus(int row, int listIndex) {
 		String status = "";

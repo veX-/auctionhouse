@@ -87,4 +87,8 @@ public class StateManager {
 	public void checkBestOffer(String userName, String productName, int value) {
 		currentState.checkBestOffer(userName, productName, value);
 	}
+	
+	public void postGUIInit() {
+		currentState.postGUIInit();
+	}
 }
