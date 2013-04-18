@@ -38,6 +38,7 @@ public class MakeOfferListener extends MouseAdapter {
 				int offerredPrice = Integer.parseInt(price);
 				comm.execute(row, offerredPrice, index);
 			} catch(java.lang.NumberFormatException exc) {
+				exc.printStackTrace();
 				errorDialog();
 			}
 		}

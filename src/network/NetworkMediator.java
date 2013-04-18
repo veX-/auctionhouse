@@ -5,14 +5,14 @@ import java.util.Vector;
 import app.model.User;
 
 public interface NetworkMediator {
-	public boolean sendItem(String name, int value);
+	public void initLogger();
 
 	public void startLoginServer(String ip, int port);
 	public void startServer(String ip, int port);
 	
 	public boolean validateUsername(String username, String password, String type,
 									String ip, int port, Vector<String> products);
-	
+
 	public void setLoginFailed();
 	
 	public void setLoginSuccess();

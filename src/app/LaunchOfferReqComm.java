@@ -1,6 +1,7 @@
 package app;
 
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -32,7 +33,7 @@ public class LaunchOfferReqComm implements Command {
 			}
 		}
 		else {
-			HashMap<String, User> relUsers = med.getRelevantUsers();
+			Hashtable<String, User> relUsers = med.getRelevantUsers();
 			Map<String, String> users = new HashMap<String, String>();
 			for (String key : relUsers.keySet())
 				users.put(key, State.STATE_NOOFFER);

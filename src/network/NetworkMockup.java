@@ -12,12 +12,14 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import app.Mediator;
 import app.model.User;
 import app.states.RequestTypes;
 
 public class NetworkMockup implements NetworkMediator {
-	
+	private Logger logger;
 	public static final int LOGIN_PENDING = 0;
 	public static final int LOGIN_SUCCESS = 1;
 	public static final int LOGIN_FAILED = 2;
@@ -40,10 +42,8 @@ public class NetworkMockup implements NetworkMediator {
 		this.med = med;
 	}
 
-	@Override
-	public boolean sendItem(String name, int value) {
-		// TODO Auto-generated method stub
-		return false;
+	public void initLogger() {
+		logger = Logger.getLogger(NetworkMockup.class.getName());
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class NetworkMockup implements NetworkMediator {
 		try {
 			socketChannel.finishConnect();
 		} catch (IOException e) {
-			System.out.println("[NETWORK]: Login server is offline!");
+			logger.fatal("[NETWORK]: Login server is offline!");
 			running = false;
 			
 			return;
@@ -130,7 +130,7 @@ public class NetworkMockup implements NetworkMediator {
 						sender, product, noOfChunks);
 		
 		if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
-			System.out.println("[NETWORK]: Failed to send chunk to " + user);
+			logger.error("[NETWORK]: Failed to send chunk to " + user);
 			return false;
 		}
 
@@ -141,7 +141,11 @@ public class NetworkMockup implements NetworkMediator {
 		}
 
 		for (int i = 1; i <= noOfChunks; i++) {
-
+			if (med.getRelevantUsers().get(user.getName()) == null) {
+				med.updateGui(RequestTypes.REQUEST_LOGOUT, user.getName(),
+						product, -1);
+				break;
+			}
 			med.updateGui(RequestTypes.REQUEST_TRANSFER, user.getName(),
 					product, i);
 			
@@ -149,7 +153,7 @@ public class NetworkMockup implements NetworkMediator {
 						sender, product, i, makeChunk());
 
 			if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
-				System.out.println("[NETWORK]: Failed to send chunk to " + user);
+				logger.error("[NETWORK]: Failed to send chunk to " + user);
 				return false;
 			}
 
@@ -178,10 +182,10 @@ public class NetworkMockup implements NetworkMediator {
 		
 		nn.setProduct(user.getProducts().get(0));
 		
-		System.out.println("[NETWORK]: Fetching users...");
+		logger.debug("[NETWORK]: Fetching users...");
 		
 		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			System.out.println("[NETWORK]: Failed to send login request");
+			logger.warn("[NETWORK]: Failed to send login request");
 			return false;
 		}
 		
@@ -204,11 +208,11 @@ public class NetworkMockup implements NetworkMediator {
 				products);
 		
 		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			System.out.println("[NETWORK]: Failed to send login request");
+			logger.warn("[NETWORK]: Failed to send login request");
 			return false;
 		}
 		
-		System.out.println("[NETWORK]: Waiting for login confirmation...");
+		logger.info("[NETWORK]: Waiting for login confirmation...");
 		
 		/* wait for a confirmation */
 		while (loginStatus == LOGIN_PENDING) {
@@ -222,7 +226,7 @@ public class NetworkMockup implements NetworkMediator {
 		if (loginStatus == LOGIN_FAILED)
 			return false;
 
-		System.out.println("[NETWORK]: Login successful!");
+		logger.info("[NETWORK]: Login successful!");
 
 		return true;
 	}
@@ -240,14 +244,13 @@ public class NetworkMockup implements NetworkMediator {
 			if (action == RequestTypes.REQUEST_INITIAL_TRANSFER) {
 				return doTransferProduct(product, user);
 			}
-			
-			System.out.println("[NETWORK]: Sending to dest: " + user);
+			logger.debug("[NETWORK]: Sending to dest: " + user);
 			
 			NetworkNotification nn = new NetworkNotification(action, userName,
 					product, price);
 			
 			if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
-				System.out.println("[NETWORK]: Network send failed!");
+				logger.warn("[NETWORK]: Network send failed!");
 				return false;
 			}
 		}
@@ -260,7 +263,7 @@ public class NetworkMockup implements NetworkMediator {
 		
 		for (User user : destinations) {
 			
-			System.out.println("[NETWORK]: Sending to dest: " + user);
+			logger.debug("[NETWORK]: Sending to dest: " + user);
 			
 			NetworkNotification nn = new NetworkNotification(action, userName,
 					product, -1);
@@ -270,7 +273,7 @@ public class NetworkMockup implements NetworkMediator {
 			nn.setProduct(product);
 
 			if (!doNetworkSend(user.getIp(), user.getPort(), nn)) {
-				System.out.println("[NETWORK]: Network send failed!");
+				logger.warn("[NETWORK]: Network send failed!");
 				return false;
 			}
 		}
@@ -290,12 +293,12 @@ public class NetworkMockup implements NetworkMediator {
 	public boolean sendLoginNotification(int action, String ip, int port, User user) {
 		
 		if (action == RequestTypes.REQUEST_LOGOUT)
-			System.out.println("User " + user.getName() + " just logged out!");
+			logger.debug("User " + user.getName() + " just logged out!");
 		
 		NetworkNotification nn = new NetworkNotification(action, user);
 		
 		if (!doNetworkSend(ip, port, nn)) {
-			System.out.println("[Login Server]: Send Login ACK failed!");
+			logger.warn("[Login Server]: Send Login ACK failed!");
 			return false;
 		}
 
@@ -341,7 +344,7 @@ public class NetworkMockup implements NetworkMediator {
 
 			socketChannel.register(selector, SelectionKey.OP_CONNECT, buf);
 
-			System.out.println("[NETWORK]: Sending object");
+			logger.debug("[NETWORK]: Sending object");
 
 			while (running) {
 				selector.select();

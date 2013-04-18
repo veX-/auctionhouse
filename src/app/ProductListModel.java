@@ -8,6 +8,8 @@ import javax.swing.JList;
 import javax.swing.JProgressBar;
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.log4j.Logger;
+
 import app.states.State;
 import app.states.SellerState;
 
@@ -15,6 +17,7 @@ import app.states.SellerState;
 public class ProductListModel extends DefaultTableModel {
 
 	private static final long serialVersionUID = 1L;
+	private Logger logger;
 	public static final Integer INDEX_COL = 0;
 	public static final Integer PROD_COL = 1;
 	public static final Integer STATUS_COL = 2;
@@ -44,6 +47,7 @@ public class ProductListModel extends DefaultTableModel {
 		prodName2Index = new HashMap<String, Integer>();
 		for (int i = 0, n = data.length; i < n; i++)
 			prodName2Index.put((String) data[i][PROD_COL], i);
+		logger = Logger.getLogger(ProductListModel.class.getName());
 	}
 
 	public Class<? extends Object> getColumnClass(int col) {
@@ -71,6 +75,7 @@ public class ProductListModel extends DefaultTableModel {
 		return model.get(index);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Object getValueFromCol(String userName, String product, int col) {
 		Integer row = prodName2Index.get(product);
 		if (row == null)
@@ -82,7 +87,7 @@ public class ProductListModel extends DefaultTableModel {
 		if (index < 0)
 			return null;
 
-		DefaultListModel<Integer> model1 = (DefaultListModel<Integer>)((JList<Integer>)
+		DefaultListModel model1 = (DefaultListModel)((JList)
 				getValueAt(row, col)).getModel();
 		return model1.get(index);
 	}
@@ -132,7 +137,8 @@ public class ProductListModel extends DefaultTableModel {
 		JList<String> list = (JList<String>) getValueAt(row, LIST_COL);
 		DefaultListModel<String> listModel = (DefaultListModel<String>) list
 				.getModel();
-
+		logger.debug(String.format("Set status %s for product %s and user %s",
+				status, productName, userName));
 		int listIndex = listModel.indexOf(userName);
 		if (listIndex > -1) {
 			list = (JList<String>) getValueAt(row, STATUS_COL);
@@ -153,7 +159,7 @@ public class ProductListModel extends DefaultTableModel {
 
 				JList<Integer> prices = (JList<Integer>) getValueAt(row, OFFER_COL);
 				DefaultListModel<Integer> pmodel = (DefaultListModel<Integer>) prices.getModel();
-				int price = pmodel.get(listIndex);
+				Integer price = pmodel.get(listIndex);
 				pmodel.clear();
 				pmodel.addElement(price);
 			}
@@ -253,8 +259,8 @@ public class ProductListModel extends DefaultTableModel {
 		Integer row = prodName2Index.get(productName);
 		if (row == null)
 			return null;
-		JList<Integer> list = (JList<Integer>) getValueAt(row, OFFER_COL);
-		DefaultListModel<Integer> model = (DefaultListModel<Integer>) list
+		JList<String> list = (JList<String>) getValueAt(row, OFFER_COL);
+		DefaultListModel<String> model = (DefaultListModel<String>) list
 				.getModel();
 		Integer[] offers = new Integer[model.size()];
 		model.copyInto(offers);
@@ -272,8 +278,8 @@ public class ProductListModel extends DefaultTableModel {
 						.getModel();
 				DefaultListModel<String> model1 = (DefaultListModel<String>)
 						((JList<String>) getValueAt(i, STATUS_COL)).getModel();
-				DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
-						((JList<Integer>) getValueAt(i, OFFER_COL)).getModel();
+				DefaultListModel<String> offers = (DefaultListModel<String>)
+						((JList<String>) getValueAt(i, OFFER_COL)).getModel();
 				model.clear();
 				model1.clear();
 				offers.clear();
@@ -324,18 +330,30 @@ public class ProductListModel extends DefaultTableModel {
 		DefaultListModel<String> model = (DefaultListModel<String>)
 				((JList<String>) getValueAt(index, LIST_COL))
 				.getModel();
+		DefaultListModel<String> statuses = (DefaultListModel<String>)
+				((JList<String>) getValueAt(index, STATUS_COL)).getModel();
 		listIndex = model.indexOf(username);
-		model.removeElement(username);
 
 		if (listIndex > -1) {
-			model = (DefaultListModel<String>)
-					((JList<String>) getValueAt(index, STATUS_COL)).getModel();
-			model.remove(listIndex);
-			if (model.isEmpty())
-				model.addElement(State.STATE_INACTIVE);
-			DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
-					((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
-			offers.remove(listIndex);
+			if (statuses.contains(State.STATE_TRANSFERP) || 
+					statuses.contains(State.STATE_TRANSFERS) ||
+					statuses.contains(State.STATE_TRANSFERF)) {
+				statuses.clear();
+				statuses.addElement(State.STATE_TRANSFERF);
+				return;
+			}
+
+			model.removeElement(username);
+			statuses.remove(listIndex);
+			if (statuses.isEmpty())
+				statuses.addElement(State.STATE_INACTIVE);
+
+			for (int i = OFFER_COL, n = getColumnCount(); i < n; i++) {
+				DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
+						((JList<Integer>) getValueAt(index, i)).getModel();
+				if (offers.size() >= listIndex)
+					offers.remove(listIndex);
+			}
 			setValueAt(null, index, PROGRESS_COL);
 		}
 	}

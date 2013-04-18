@@ -16,6 +16,8 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
+
 import app.Mediator;
 import app.model.Buyer;
 import app.model.Seller;
@@ -26,9 +28,10 @@ public class NetworkServer extends Thread {
 
 	private static final int LISTENER_THREADS = 2;
 	private static final int BUFFER_SIZE = 8192;
-	
+
 	private HashMap<String, User> systemUsers;
-	
+	public static Logger logger;
+
 	private final boolean loginServerMode;
 
 	private static ExecutorService pool = Executors
@@ -50,17 +53,25 @@ public class NetworkServer extends Thread {
 
 		this.med = med;
 		systemUsers = new HashMap<String, User>();
+		if (mode) {
+			System.setProperty("logfile.name", "dummy.log");
+			initLogger();
+			med.getNetMed().initLogger();
+		}
+	}
+
+	public static void initLogger() {
+		logger = Logger.getLogger(NetworkServer.class.getName());
 	}
 
 	public boolean handleLoginServerRequest(NetworkNotification nn) {
-		
 		Vector<User> dests = new Vector<User>();
 		
 		String userName = nn.getName();
 		
 		dests.add(new Seller("", nn.getIp(), nn.getPort(), null));
 		
-		System.out.println("[Login Server]: Processing login request...");
+		logger.debug("[Login Server]: Processing login request...");
 		
 		switch (nn.getAction()) {
 		case RequestTypes.REQUEST_LOGIN:
@@ -74,7 +85,7 @@ public class NetworkServer extends Thread {
 				return false;
 			}
 
-			System.out.println("[Login Server]: Sending ACK back to " + nn.getIp() + " " + nn.getPort());
+			logger.debug("[Login Server]: Sending ACK back to " + nn.getIp() + " " + nn.getPort());
 
 			/* just an ACK type message replied to the user end application */
 			med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
@@ -99,8 +110,8 @@ public class NetworkServer extends Thread {
 			Vector<String> buyerProds = new Vector<String>();
 
 			buyerProds.add(buyerProduct);
-			
-			System.out.println("[Login Server][Relevant users]: Searching prod " + buyerProduct);
+
+			logger.debug("[Login Server][Relevant users]: Searching prod " + buyerProduct);
 
 			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
 
@@ -110,7 +121,7 @@ public class NetworkServer extends Thread {
 
 				User seller = e.getValue();
 				
-				System.out.println("[Login Server][Relevant users]: Found seller: " + seller);
+				logger.debug("[Login Server][Relevant users]: Found seller: " + seller);
 
 				if (seller.getProducts().contains(buyerProduct)) {
 
@@ -148,7 +159,7 @@ public class NetworkServer extends Thread {
 			
 			break;
 		default:
-			System.out.println("[LOGIN SERVER]: Invalid request type: " + nn.getAction());
+			logger.debug("[LOGIN SERVER]: Invalid request type: " + nn.getAction());
 			return false;
 		}
 		
@@ -164,7 +175,9 @@ public class NetworkServer extends Thread {
 		ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
 		socketChannel.register(key.selector(), SelectionKey.OP_READ, buf);
 
-		System.out.println("[NETWORK]: Accepted connection from: "
+		if (logger == null)
+			initLogger();
+		logger.debug("[NETWORK]: Accepted connection from: "
 				+ socketChannel.socket().getRemoteSocketAddress());
 	}
 
@@ -199,7 +212,7 @@ public class NetworkServer extends Thread {
 
 						NetworkNotification nn = unmarshal(buf);
 
-						System.out.println("[NETWORK]: Received notification: " + nn);
+						logger.debug("[NETWORK]: Received notification: " + nn);
 						
 						if (loginServerMode) {
 							handleLoginServerRequest(nn);
@@ -229,7 +242,7 @@ public class NetworkServer extends Thread {
 								nn.getProduct(), nn.getPrice());
 						
 					} catch (IOException e) {
-						System.out.println("[NETWORK]: Connection closed: "
+						logger.debug("[NETWORK]: Connection closed: "
 								+ e.getMessage());
 
 						try {
