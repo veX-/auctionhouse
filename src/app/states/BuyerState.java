@@ -160,11 +160,12 @@ public class BuyerState extends State {
 			for (Integer offer : offers)
 				if (offer != null)
 					minOffer = (minOffer > offer) ? offer : minOffer;
-			if (minOffer > -1 && price < minOffer)
+			if (minOffer > -1 && price < minOffer) {
 				/* Notify everyone the best offer. */
 				minOffer = price;
 				med.sendNotifications(RequestTypes.REQUEST_MAKE_OFFER,
 						name, product, price);
+			}
 		}
 		logger.debug("Best offer is " + minOffer);
 	}
