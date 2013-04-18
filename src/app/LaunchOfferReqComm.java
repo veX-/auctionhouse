@@ -25,7 +25,6 @@ public class LaunchOfferReqComm implements Command {
 		String productName = med.getProduct(row, col);
 
 		if (med.fetchRelevantSellers(productName)) {
-			
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -36,7 +35,8 @@ public class LaunchOfferReqComm implements Command {
 			Hashtable<String, User> relUsers = med.getRelevantUsers();
 			Map<String, String> users = new HashMap<String, String>();
 			for (String key : relUsers.keySet())
-				users.put(key, State.STATE_NOOFFER);
+				if (relUsers.get(key).getProducts().contains(productName))
+					users.put(key, State.STATE_NOOFFER);
 			med.updateUsersList(productName, users);
 		}
 

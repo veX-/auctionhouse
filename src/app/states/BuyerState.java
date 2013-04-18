@@ -119,7 +119,7 @@ public class BuyerState extends State {
 			med.forgetRelevantUser(name);
 			break;
 		default:
-			System.out.println("Invalid action: " + action);
+			logger.debug("Invalid action: " + action);
 			return false;
 		}
 

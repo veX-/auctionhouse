@@ -221,13 +221,13 @@ public class Mediator implements WSClientMediator {
 		
 		mgr.login(username, products);
 		
-		System.out.println("LOADING PRODLIST");
+		logger.info("LOADING PRODLIST");
 		loadInitialProdList(username, type, products);
 		
 		if (!netMed.validateUsername(username, password, type,
 									 serverIp, serverPort, products)) {
 			
-			System.out.println("[Mediator]: Login Authentication failed!");
+			logger.fatal("[Mediator]: Login Authentication failed!");
 			return false;
 		}
 		
@@ -340,13 +340,15 @@ public class Mediator implements WSClientMediator {
 	 * @param user
 	 */
 	public void handleLoginEvent(String product, User user) {
-
 		synchronized (relevantUsers) {
-			if (!relevantUsers.containsKey(user.getName()))
-				relevantUsers.put(user.getName(), user);
+			User u = relevantUsers.get(user.getName());
+			if (u != null)
+				user.getProducts().addAll(u.getProducts());
+			relevantUsers.put(user.getName(), user);
 		}
 
 		addUserToList(user.getName(), product);
+		guiMed.repaint();
 	}
 
 	public boolean handleLogoutEvent(String name) {
@@ -549,7 +551,7 @@ public class Mediator implements WSClientMediator {
 			logger.debug("Made offer: " + price);
 			destinations = mgr.computeDestinations(action, userName, product, price);
 			
-			System.out.println("Sending MAKE_OFFER to " + destinations.size() + " users!");
+			logger.debug("Sending MAKE_OFFER to " + destinations.size() + " users!");
 
 			if (!netMed.sendNotifications(action, mgr.getUserName(), product, price, destinations)) {
 				logger.debug("Failed to send network Notifications!");

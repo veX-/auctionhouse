@@ -103,12 +103,12 @@ public class ProductListModel extends DefaultTableModel {
 	public String getStatus(int row, String name) {
 		String status = "";
 		JList<String> list = (JList<String>) getValueAt(row, LIST_COL);
-		DefaultListModel<String> model = (DefaultListModel<String>) list
+		DefaultListModel<String> usersList = (DefaultListModel<String>) list
 				.getModel();
-		if (name == null || model.contains(name)) {
-			int index = (name == null) ?  0 : model.indexOf(name);
-			list = (JList<String>) getValueAt(row, STATUS_COL);
-			model = (DefaultListModel<String>) list.getModel();
+		if (name == null || usersList.contains(name)) {
+			int index = (name == null) ?  0 : usersList.indexOf(name);
+			DefaultListModel<String> model = (DefaultListModel<String>)
+					((JList<String>) getValueAt(row, STATUS_COL)).getModel();
 			status = model.get(index);
 		}
 
@@ -126,13 +126,13 @@ public class ProductListModel extends DefaultTableModel {
 	public String getStatus(int row, int listIndex) {
 		String status = "";
 		JList<String> list = (JList<String>) getValueAt(row, LIST_COL);
-		DefaultListModel<String> model = (DefaultListModel<String>) list
+		DefaultListModel<String> usersList = (DefaultListModel<String>) list
 				.getModel();
-		if (model.size() < listIndex)
+		if (usersList.size() < listIndex)
 			return status;
 
-		list = (JList<String>) getValueAt(row, STATUS_COL);
-		model = (DefaultListModel<String>) list.getModel();
+		DefaultListModel<String> model = (DefaultListModel<String>)
+				((JList<String>) getValueAt(row, STATUS_COL)).getModel();
 		status = model.get(listIndex);
 
 		return status;
@@ -148,9 +148,10 @@ public class ProductListModel extends DefaultTableModel {
 		logger.debug(String.format("Set status %s for product %s and user %s",
 				status, productName, userName));
 		int listIndex = listModel.indexOf(userName);
+
 		if (listIndex > -1) {
-			list = (JList<String>) getValueAt(row, STATUS_COL);
-			DefaultListModel<String> model = (DefaultListModel<String>) list.getModel();
+			DefaultListModel<String> model = (DefaultListModel<String>)
+					((JList<String>) getValueAt(row, STATUS_COL)).getModel();
 			String currStatus = model.get(listIndex);
 			if (status.equals(State.STATE_TRANSFERF) && !currStatus.equals(State.STATE_TRANSFERS)
 					&& !currStatus.equals(State.STATE_TRANSFERP)) {
@@ -187,19 +188,19 @@ public class ProductListModel extends DefaultTableModel {
 			return;
 
 		JList<String> list;
-		DefaultListModel<String> model;
+		DefaultListModel<String> usersList;
 		JList<Integer> vlist;
 		DefaultListModel<Integer> vmodel;
 		int listIndex;
 		switch (status) {
 		case State.STATE_OFFERMADE:
 			list = (JList<String>) getValueAt(row, LIST_COL);
-			model = (DefaultListModel<String>) list.getModel();
-			listIndex = model.indexOf(userName);
+			usersList = (DefaultListModel<String>) list.getModel();
+			listIndex = usersList.indexOf(userName);
 			if (listIndex > -1) {
 				/* Set status */
-				list = (JList<String>) getValueAt(row, STATUS_COL);
-				model = (DefaultListModel<String>) list.getModel();
+				DefaultListModel<String> model = (DefaultListModel<String>)
+						((JList<String>) getValueAt(row, STATUS_COL)).getModel();
 				model.set(listIndex, status);
 
 				/* Set offer */
@@ -210,12 +211,12 @@ public class ProductListModel extends DefaultTableModel {
 			break;
 		case State.STATE_OFFERE:
 			list = (JList<String>) getValueAt(row, LIST_COL);
-			model = (DefaultListModel<String>) list.getModel();
-			listIndex = model.indexOf(userName);
+			usersList = (DefaultListModel<String>) list.getModel();
+			listIndex = usersList.indexOf(userName);
 			if (listIndex > -1) {
 				/* Set status */
-				list = (JList<String>) getValueAt(row, STATUS_COL);
-				model = (DefaultListModel<String>) list.getModel();
+				DefaultListModel<String> model = (DefaultListModel<String>)
+						((JList<String>) getValueAt(row, STATUS_COL)).getModel();
 				model.set(listIndex, status);
 
 				/* Set best offer */
@@ -375,14 +376,14 @@ public class ProductListModel extends DefaultTableModel {
 
 		if (model.contains(username) ) {
 			int userIndex = model.indexOf(username);
-			model = (DefaultListModel<String>)
+			DefaultListModel<String> statuses = (DefaultListModel<String>)
 					((JList<String>) getValueAt(index, STATUS_COL)).getModel();
-			if (model.contains(State.STATE_TRANSFERC) || model.contains(State.STATE_TRANSFERF)) {
+			if (statuses.contains(State.STATE_TRANSFERC) || statuses.contains(State.STATE_TRANSFERF)) {
 				/* Cleanup */
 				setValueAt(null, index, PROGRESS_COL);
 				DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
 						((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
-				model.set(userIndex, State.STATE_NOOFFER);
+				statuses.set(userIndex, State.STATE_NOOFFER);
 				offers.set(userIndex, null);
 				return userIndex;
 			}
@@ -392,12 +393,12 @@ public class ProductListModel extends DefaultTableModel {
 			model.addElement(username);
 			userIndex = model.indexOf(username);
 
-			model = (DefaultListModel<String>)
+			DefaultListModel<String> statuses = (DefaultListModel<String>)
 					((JList<String>) getValueAt(index, STATUS_COL)).getModel();
-			if (model.contains(State.STATE_INACTIVE))
-				model.set(0, State.STATE_NOOFFER);
+			if (statuses.contains(State.STATE_INACTIVE))
+				statuses.set(0, State.STATE_NOOFFER);
 			else
-				model.addElement(State.STATE_NOOFFER);
+				statuses.addElement(State.STATE_NOOFFER);
 			DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
 					((JList<Integer>) getValueAt(index, OFFER_COL)).getModel();
 			offers.addElement(null);

@@ -118,7 +118,7 @@ public class SellerState extends State {
 			med.forgetRelevantUser(userName);
 			break;
 		default:
-			System.out.println("Invalid action: " + action);
+			logger.debug("Invalid action: " + action);
 			return false;
 		}
 
@@ -138,7 +138,7 @@ public class SellerState extends State {
 		if (buyer != null)
 			destinations.add(buyer);
 		
-		System.out.println(destinations.size() > 0 ? "found!" : "not found!");
+		logger.warn(destinations.size() > 0 ? "found!" : "not found!");
 		
 		return destinations;
 	}
