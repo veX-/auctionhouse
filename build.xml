@@ -69,7 +69,7 @@
     </target>
     <target name="NewSeller1">
         <java classname="app.Main" failonerror="true" fork="yes">
-            <arg line="127.0.0.1 3002 testSeller1.txt"/>
+            <arg line="127.0.0.1 3002 testSeller2.txt"/>
             <classpath refid="auctionhouse.classpath"/>
         </java>
     </target>
