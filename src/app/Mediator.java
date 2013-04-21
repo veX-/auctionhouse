@@ -387,15 +387,19 @@ public class Mediator implements WSClientMediator {
 				
 				if (sellerProds.contains(prod)  && !status.equals(State.STATE_INACTIVE) &&
 						!status.equals(State.STATE_TRANSFERP)) {
+					
 					System.out.println("Notifying open auction for " + prod);
 					netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
 							mgr.getUserName(), this.serverIp,
 							this.serverPort, prod, destinations);
 					
+					addUserToList(seller.getName(), prod);
 					localProdList.add(prod);
-					relevantUsers.put(seller.getName(), seller);
 				}
 			}
+			
+			relevantUsers.put(seller.getName(), seller);
+			guiMed.repaint();
 		}
 
 	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
