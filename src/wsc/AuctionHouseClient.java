@@ -1,3 +1,5 @@
+package wsc;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
