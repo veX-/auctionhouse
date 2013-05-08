@@ -1,5 +1,3 @@
-package wsc;
-
 public class DatabaseInfo {
 	static final String drivername = "com.mysql.jdbc.Driver";
 	static final String connectionUrl = "jdbc:mysql://localhost/auctionhouse";
