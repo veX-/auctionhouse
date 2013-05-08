@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.xml.namespace.QName;
@@ -12,6 +13,9 @@ import javax.xml.rpc.ServiceException;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import app.Mediator;
 import app.model.Seller;
@@ -162,6 +166,35 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		}
 		
 		return true;
+	}
+	
+	public void testGetDb() {
+		call.setOperationName(new QName("getDB"));
+		try {
+			Object r = call.invoke(new Object[]{"me", "buyer", "cevaip:altcevaport"});
+			if (r == null) {
+				System.out.println("No results");
+			}
+			else {
+				JSONObject users = new JSONObject((String)r);
+				Iterator<String> it = users.keys();
+				while (it.hasNext()) {
+					String username = (String)it.next();
+					try {
+						JSONArray products = (JSONArray)users.get(username);
+						int n = products.length();
+						for (int i = 0; i < n; i++)
+							System.out.println(products.get(i));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 //	public static void main(String[] args) {
