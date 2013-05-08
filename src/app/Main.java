@@ -10,10 +10,10 @@ public class Main {
 	private Mediator med;
 	protected Logger l;
 
-	public Main(String ip, int port, String configFile) {
-		med = new Mediator(ip, port, configFile);
+	public Main(String url, String listenIp, int listenPort, String configFile) {
+		med = new Mediator(url, listenIp, listenPort, configFile);
 
-		med.getNetMed().startServer(ip, port);
+		med.getNetMed().startServer(listenIp, listenPort);
 
 		EventQueue.invokeLater(new Runnable() {
 
@@ -28,29 +28,17 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		
-		if (args.length < 2) {
-			System.err.println("Usage: java Main <ip> <port> [<filename>]");
+
+		if (args.length < 4) {
+			System.err.println("Usage: java Main <ws url> <ip> <port> <filename>");
 			System.exit(1);
 		}
+
+		final String url = args[0];
+		final String ip = args[1];
+		final int port = Integer.parseInt(args[2]);
+		final String configFile = args[3];
 		
-		if (args.length == 2) {
-			
-			final String ip = args[0];
-			final int port = Integer.parseInt(args[1]);
-			
-			System.out.println("[Auction House]: Running in Login Server Mode");
-			
-			Mediator med = new Mediator(ip, port, null);
-			med.getNetMed().startLoginServer(ip, port);
-			
-		} else {
-			
-			final String ip = args[0];
-			final int port = Integer.parseInt(args[1]);
-			final String configFile = args[2];
-	
-			new Main(ip, port, configFile);
-		}
+		new Main(url, ip, port, configFile);
 	}
 }

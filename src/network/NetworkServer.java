@@ -11,16 +11,12 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
 
 import app.Mediator;
-import app.model.Buyer;
-import app.model.Seller;
 import app.model.User;
 import app.states.RequestTypes;
 
@@ -31,8 +27,6 @@ public class NetworkServer extends Thread {
 
 	private HashMap<String, User> systemUsers;
 	public static Logger logger;
-
-	private final boolean loginServerMode;
 
 	private static ExecutorService pool = Executors
 			.newFixedThreadPool(LISTENER_THREADS);
@@ -46,142 +40,137 @@ public class NetworkServer extends Thread {
 	 * set @mode to true if you want to enable Login Server Mode,
 	 * making the application act as a Central User Login entity
 	 */
-	public NetworkServer(String ip, int port, Mediator med, boolean mode) {
-		this.loginServerMode = mode;
+	public NetworkServer(String ip, int port, Mediator med) {
 		this.ip = ip;
 		this.port = port;
 
 		this.med = med;
 		systemUsers = new HashMap<String, User>();
-		if (mode) {
-			System.setProperty("logfile.name", "dummy.log");
-			initLogger();
-			med.getNetMed().initLogger();
-		}
 	}
 
 	public static void initLogger() {
 		logger = Logger.getLogger(NetworkServer.class.getName());
 	}
 
-	public boolean handleLoginServerRequest(NetworkNotification nn) {
-		Vector<User> dests = new Vector<User>();
-		
-		String userName = nn.getName();
-		
-		dests.add(new Seller("", nn.getIp(), nn.getPort(), null));
-		
-		logger.debug("[Login Server]: Processing login request...");
-		
-		switch (nn.getAction()) {
-		case RequestTypes.REQUEST_LOGIN:
-
-			/* already logged in from another place! */
-			if (systemUsers.get(userName) != null) {
-
-				med.getNetMed().sendNotifications(RequestTypes.SYSTEM_LOGIN_FAILURE,
-						"", "", 0, dests);
-
-				return false;
-			}
-
-			logger.debug("[Login Server]: Sending ACK back to " + nn.getIp() + " " + nn.getPort());
-
-			/* just an ACK type message replied to the user end application */
-			med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
-					nn.getIp(), nn.getPort(), null);
-
-			Vector<String> userProducts = nn.getProducts();
-
-			if (nn.getType().equals(User.buyerType))
-				systemUsers.put(userName,
-						new Buyer(userName, nn.getIp(), nn.getPort(), userProducts));
-			else
-				systemUsers.put(userName,
-						new Seller(userName, nn.getIp(), nn.getPort(), userProducts));
-
-			break;
-		/* this request is only made by sellers - it will fly off to the buyers! */
-		case RequestTypes.REQUEST_RELEVANT_BUYERS:
-		
-			User seller = new Seller(nn.getName(), nn.getIp(),
-								   nn.getPort(), nn.getProducts());
-		
-			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
-				User user = e.getValue();
-			
-				if (user.getType().equals(User.buyerType)) {
-					
-					med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
-							user.getIp(), user.getPort(), seller);								
-				}
-			}
-			 
-			break;
-
-		/* this is only made by buyers! */
-		case RequestTypes.REQUEST_RELEVANT_SELLERS:
-			userName = nn.getName();
-			String buyerProduct = nn.getProduct();
-
-			Vector<String> buyerProds = new Vector<String>();
-
-			buyerProds.add(buyerProduct);
-
-			logger.debug("[Login Server][Relevant users]: Searching prod " + buyerProduct);
-
-			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
-
-				if (e.getKey().equals(userName) ||
-						e.getValue().getType().equals(User.buyerType))
-					continue;
-
-				seller = e.getValue();
-				
-				logger.debug("[Login Server][Relevant users]: Found seller: " + seller);
-
-				if (seller.getProducts().contains(buyerProduct)) {
-
-					Seller s = new Seller(seller.getName(), seller.getIp(),
-											seller.getPort(), buyerProds);
-
-					med.getNetMed().sendLoginNotification(RequestTypes.SYSTEM_NEW_LOGIN_EVENT,
-							nn.getIp(), nn.getPort(), s);
-				}
-			}
-
-			break;
-
-		case RequestTypes.REQUEST_LOGOUT:
-			
-			userProducts = systemUsers.get(userName).getProducts();
-		
-			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
-			
-				User user = e.getValue();
-				
-				for (String s : user.getProducts()) {
-					if (userProducts.contains(s)) {
-						
-						med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
-								user.getIp(), user.getPort(),
-								new Seller(userName, nn.getIp(), nn.getPort(), null));
-						
-						break;
-					}
-				}
-			}
-			
-			systemUsers.remove(userName);
-			
-			break;
-		default:
-			logger.debug("[LOGIN SERVER]: Invalid request type: " + nn.getAction());
-			return false;
-		}
-		
-		return true;
-	}
+// TODO: test and remove
+//	public boolean handleLoginServerRequest(NetworkNotification nn) {
+//		Vector<User> dests = new Vector<User>();
+//		
+//		String userName = nn.getName();
+//		
+//		dests.add(new Seller("", nn.getIp(), nn.getPort(), null));
+//		
+//		logger.debug("[Login Server]: Processing login request...");
+//		
+//		switch (nn.getAction()) {
+//		case RequestTypes.REQUEST_LOGIN:
+//
+//			/* already logged in from another place! */
+//			if (systemUsers.get(userName) != null) {
+//
+//				med.getNetMed().sendNotifications(RequestTypes.SYSTEM_LOGIN_FAILURE,
+//						"", "", 0, dests);
+//
+//				return false;
+//			}
+//
+//			logger.debug("[Login Server]: Sending ACK back to " + nn.getIp() + " " + nn.getPort());
+//
+//			/* just an ACK type message replied to the user end application */
+//			med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
+//					nn.getIp(), nn.getPort(), null);
+//
+//			Vector<String> userProducts = nn.getProducts();
+//
+//			if (nn.getType().equals(User.buyerType))
+//				systemUsers.put(userName,
+//						new Buyer(userName, nn.getIp(), nn.getPort(), userProducts));
+//			else
+//				systemUsers.put(userName,
+//						new Seller(userName, nn.getIp(), nn.getPort(), userProducts));
+//
+//			break;
+//		/* this request is only made by sellers - it will fly off to the buyers! */
+//		case RequestTypes.REQUEST_RELEVANT_BUYERS:
+//		
+//			User seller = new Seller(nn.getName(), nn.getIp(),
+//								   nn.getPort(), nn.getProducts());
+//		
+//			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
+//				User user = e.getValue();
+//			
+//				if (user.getType().equals(User.buyerType)) {
+//					
+//					med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
+//							user.getIp(), user.getPort(), seller);								
+//				}
+//			}
+//			 
+//			break;
+//
+//		/* this is only made by buyers! */
+//		case RequestTypes.REQUEST_RELEVANT_SELLERS:
+//			userName = nn.getName();
+//			String buyerProduct = nn.getProduct();
+//
+//			Vector<String> buyerProds = new Vector<String>();
+//
+//			buyerProds.add(buyerProduct);
+//
+//			logger.debug("[Login Server][Relevant users]: Searching prod " + buyerProduct);
+//
+//			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
+//
+//				if (e.getKey().equals(userName) ||
+//						e.getValue().getType().equals(User.buyerType))
+//					continue;
+//
+//				seller = e.getValue();
+//				
+//				logger.debug("[Login Server][Relevant users]: Found seller: " + seller);
+//
+//				if (seller.getProducts().contains(buyerProduct)) {
+//
+//					Seller s = new Seller(seller.getName(), seller.getIp(),
+//											seller.getPort(), buyerProds);
+//
+//					med.getNetMed().sendLoginNotification(RequestTypes.SYSTEM_NEW_LOGIN_EVENT,
+//							nn.getIp(), nn.getPort(), s);
+//				}
+//			}
+//
+//			break;
+//
+//		case RequestTypes.REQUEST_LOGOUT:
+//			
+//			userProducts = systemUsers.get(userName).getProducts();
+//		
+//			for (Map.Entry<String, User> e : systemUsers.entrySet()) {
+//			
+//				User user = e.getValue();
+//				
+//				for (String s : user.getProducts()) {
+//					if (userProducts.contains(s)) {
+//						
+//						med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
+//								user.getIp(), user.getPort(),
+//								new Seller(userName, nn.getIp(), nn.getPort(), null));
+//						
+//						break;
+//					}
+//				}
+//			}
+//			
+//			systemUsers.remove(userName);
+//			
+//			break;
+//		default:
+//			logger.debug("[LOGIN SERVER]: Invalid request type: " + nn.getAction());
+//			return false;
+//		}
+//		
+//		return true;
+//	}
 	
 	public void accept(SelectionKey key) throws IOException {
 
@@ -230,12 +219,6 @@ public class NetworkServer extends Thread {
 						NetworkNotification nn = unmarshal(buf);
 
 						logger.debug("[NETWORK]: Received notification: " + nn);
-						
-						if (loginServerMode) {
-							handleLoginServerRequest(nn);
-							
-							return;
-						}
 
 						switch (nn.getAction()) {
 						case RequestTypes.SYSTEM_LOGIN_FAILURE:

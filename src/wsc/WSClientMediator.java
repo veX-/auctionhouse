@@ -1,6 +1,9 @@
 package wsc;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Vector;
+
+import app.model.User;
 
 /**
  * Interface between the Web Service and the main Application Mediator class
@@ -11,8 +14,12 @@ import java.util.List;
 public interface WSClientMediator {
 
 	/* user presence functions */
-	public int loadInitialProdList(String username, String type,
-			List<String> products);
+	public boolean logIn(String username, String password, String type,
+			 						String ip, int port, Vector<String> products);
+
+	public boolean logOut(String username);
+
+	public boolean getInterestedUsers(String type, Vector<String> products);
 
 	public boolean handleLogoutEvent(String userName);
 

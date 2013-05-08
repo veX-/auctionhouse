@@ -18,7 +18,7 @@ import app.Mediator;
 import app.model.User;
 import app.states.RequestTypes;
 
-public class NetworkMockup implements NetworkMediator {
+public class NetworkMediatorImpl implements NetworkMediator {
 	private Logger logger;
 	public static final int LOGIN_PENDING = 0;
 	public static final int LOGIN_SUCCESS = 1;
@@ -26,10 +26,6 @@ public class NetworkMockup implements NetworkMediator {
 	
 	public static boolean running = true;
 	private static int loginStatus = LOGIN_PENDING;
-	
-	public static final String LOGIN_SERVER_IP = "127.0.0.1";
-	public static final int LOGIN_SERVER_PORT = 11011;
-
 
 	private final int MIN_FILE_SIZE = 256;
 	private final int MAX_FILE_SIZE = 2048;
@@ -38,12 +34,12 @@ public class NetworkMockup implements NetworkMediator {
 
 	private Mediator med;
 
-	public NetworkMockup(Mediator med) {
+	public NetworkMediatorImpl(Mediator med) {
 		this.med = med;
 	}
 
 	public void initLogger() {
-		logger = Logger.getLogger(NetworkMockup.class.getName());
+		logger = Logger.getLogger(NetworkMediatorImpl.class.getName());
 	}
 
 	/**
@@ -175,76 +171,37 @@ public class NetworkMockup implements NetworkMediator {
 		loginStatus = LOGIN_SUCCESS;
 	}
 
-	public boolean fetchRelevantBuyers(User user) {
- 		
- 		NetworkNotification nn = new NetworkNotification(
- 				RequestTypes.REQUEST_RELEVANT_BUYERS, user);
- 		
- 		logger.debug("[NETWORK]: Fetching users...");
-		
-		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			logger.error("[NETWORK]: Failed to send relevant buyers request");
-			return false;
-		}
-
-		return true;
-	}
+//	public boolean fetchRelevantBuyers(User user) {
+// 		
+// 		NetworkNotification nn = new NetworkNotification(
+// 				RequestTypes.REQUEST_RELEVANT_BUYERS, user);
+// 		
+// 		logger.debug("[NETWORK]: Fetching users...");
+//		
+//		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
+//			logger.error("[NETWORK]: Failed to send relevant buyers request");
+//			return false;
+//		}
+//
+//		return true;
+//	}
 	
-	public boolean fetchRelevantSellers(User user) {
-		
-		NetworkNotification nn = new NetworkNotification(
-				RequestTypes.REQUEST_RELEVANT_SELLERS, user);
-		
-		nn.setProduct(user.getProducts().get(0));
-		
-		logger.debug("[NETWORK]: Fetching users...");
-		
-		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			logger.warn("[NETWORK]: Failed to send relevant seller request");
-			return false;
-		}
-		
-		return true;
-	}
-
-	/**
-	 * 
-	 */
-	public boolean validateUsername(String username, String password, String type,
-									String ip, int port, Vector<String> products) {
-		
-		NetworkNotification nn = new NetworkNotification(
-				RequestTypes.REQUEST_LOGIN,
-				username,
-				password,
-				type,
-				ip,
-				port,
-				products);
-		
-		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
-			logger.warn("[NETWORK]: Failed to send login request");
-			return false;
-		}
-		
-		logger.info("[NETWORK]: Waiting for login confirmation...");
-		
-		/* wait for a confirmation */
-		while (loginStatus == LOGIN_PENDING) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (loginStatus == LOGIN_FAILED)
-			return false;
-
-		logger.info("[NETWORK]: Login successful!");
-
-		return true;
-	}
+//	public boolean fetchRelevantSellers(User user) {
+//		
+//		NetworkNotification nn = new NetworkNotification(
+//				RequestTypes.REQUEST_RELEVANT_SELLERS, user);
+//		
+//		nn.setProduct(user.getProducts().get(0));
+//		
+//		logger.debug("[NETWORK]: Fetching users...");
+//		
+//		if (!doNetworkSend(LOGIN_SERVER_IP, LOGIN_SERVER_PORT, nn)) {
+//			logger.warn("[NETWORK]: Failed to send relevant seller request");
+//			return false;
+//		}
+//		
+//		return true;
+//	}
 	
 	/**
 	 * Handles a generic PopUp menu request
@@ -294,12 +251,6 @@ public class NetworkMockup implements NetworkMediator {
 		}
 	
 		return true;	
-	}
-
-
-	public boolean userLogOut(User user) {
-		return sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
-					LOGIN_SERVER_IP, LOGIN_SERVER_PORT, user);
 	}
 
 	/**
@@ -399,12 +350,8 @@ public class NetworkMockup implements NetworkMediator {
 		running = true;
 		return true;
 	}
-
-	public void startLoginServer(String ip, int port) {
-		new NetworkServer(ip, port, med, true).start();
-	}
 	
 	public void startServer(String ip, int port) {
-		new NetworkServer(ip, port, med, false).start();
+		new NetworkServer(ip, port, med).start();
 	}
 }

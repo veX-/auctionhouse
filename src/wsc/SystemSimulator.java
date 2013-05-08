@@ -60,11 +60,6 @@ public class SystemSimulator extends SwingWorker<Boolean, String> {
 						: User.sellerType;
 				int noProd = rnd.nextInt(5) + 3;
 
-				if (med.loadInitialProdList("User" + userIndex, userType,
-						genProducts(noProd)) != 0) {
-					System.err.println("User initialization error!");
-				}
-
 				userIndex++;
 
 				break;

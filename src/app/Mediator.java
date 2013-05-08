@@ -16,20 +16,20 @@ import javax.swing.JList;
 import javax.swing.table.TableModel;
 
 import network.NetworkMediator;
-import network.NetworkMockup;
+import network.NetworkMediatorImpl;
 import network.NetworkServer;
 
 import org.apache.log4j.Logger;
 
 import wsc.WSClientMediator;
-import app.model.Buyer;
+import wsc.WSClientMediatorImpl;
 import app.model.Seller;
 import app.model.User;
 import app.states.RequestTypes;
 import app.states.State;
 import app.states.StateManager;
 
-public class Mediator implements WSClientMediator {
+public class Mediator {
 
 	private final String LOG_FILE_FORMAT = "%s.log";
 	private String configFile;
@@ -37,6 +37,7 @@ public class Mediator implements WSClientMediator {
 	private StateManager mgr;
 	private NetworkMediator netMed;
 	private GUIMediator guiMed;
+	private WSClientMediator wscMed;
 	private Logger logger = null;
 	private String serverIp;
 	private int serverPort;
@@ -44,16 +45,17 @@ public class Mediator implements WSClientMediator {
 	 * Association on product name and flag which tells if it's startup phase for the product.
 	 */
 	private Vector<String> inStartupPhase;
-	
+
 	private Hashtable<String, User> relevantUsers;
 
-	public Mediator(String ip, int port, String configFile) {
+	public Mediator(String url, String ip, int port, String configFile) {
 		this.serverIp = ip;
 		this.serverPort = port;
 		this.configFile = configFile;
 		mgr = new StateManager(this);
-		netMed = new NetworkMockup(this);
+		netMed = new NetworkMediatorImpl(this);
 		guiMed = new GUIMediatorImpl(this);
+		wscMed = new WSClientMediatorImpl(url, this);
 		this.inStartupPhase = new Vector<String>();
 
 		this.relevantUsers = new Hashtable<String, User>();
@@ -216,21 +218,20 @@ public class Mediator implements WSClientMediator {
 			mgr.setBuyerState();
 		else
 			mgr.setSellerState();
-		
+
 		Vector<String> products = tempReadConfig(username, type);
 		
 		mgr.login(username, products);
 		
 		logger.info("LOADING PRODLIST");
 		loadInitialProdList(username, type, products);
-		
-		if (!netMed.validateUsername(username, password, type,
-									 serverIp, serverPort, products)) {
-			
+
+		if (!wscMed.logIn(username, password, type, serverIp, serverPort, products)) {
+
 			logger.fatal("[Mediator]: Login Authentication failed!");
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -258,15 +259,25 @@ public class Mediator implements WSClientMediator {
 		return products;
 	}
 
+	// TODO: test and clean up
 	public boolean logOut() {
 		boolean allowed = mgr.logout();
 		if (allowed)
-			netMed.userLogOut(mgr.getUser());
+			//netMed.userLogOut(mgr.getUser());
+			wscMed.logOut(mgr.getUserName());
 		return allowed;
 	}
 
 	public String getUserName() {
 		return mgr.getUserName();
+	}
+	
+	public String getListenIp() {
+		return serverIp;
+	}
+	
+	public int getListenPort() {
+		return serverPort;
 	}
 
 	/**
@@ -288,8 +299,6 @@ public class Mediator implements WSClientMediator {
 		return mgr.getContextualMenuItems(products.getStatus(row, listIndex));
 	}
 
-	/* Web Service Client related methods */
-
 	/**
 	 * Load initial configurations for a user and return 0 for success.
 	 * 
@@ -300,7 +309,6 @@ public class Mediator implements WSClientMediator {
 	 * @param products
 	 * @return 0 for success, -1 if type is unknown
 	 */
-	@Override
 	public int loadInitialProdList(String username, String type,
 			List<String> products) {
 
@@ -365,7 +373,7 @@ public class Mediator implements WSClientMediator {
 	}
 	
 	/**
-	 * Notifies a new system seller of any currently open offer request
+	 * Notifies a new system seller of any currently open offer requests
 	 * 
 	 * @param seller - newly logged in seller
 	 */
@@ -402,19 +410,27 @@ public class Mediator implements WSClientMediator {
 			guiMed.repaint();
 		}
 
+	/* TODO: verify GUI part */
 	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
 		User u;
 		synchronized (relevantUsers) {
 			u = relevantUsers.get(userName);
 			if (u == null) {
-				Vector<String> products = new Vector<String>();
-				products.add(product);
-				relevantUsers.put(userName, new Seller(userName, ip, port, products));
+				Seller seller = new Seller(userName, ip, port);
+				seller.getProducts().add(product);
+				
+				relevantUsers.put(userName, seller);
+				
+				addUserToList(userName, product);
+				guiMed.repaint();
 				return;
 			}
 		}
 		if (!u.getProducts().contains(product)) {
 			u.getProducts().add(product);
+			
+			addUserToList(userName, product);
+			guiMed.repaint();
 		}
 	}
 	
@@ -425,27 +441,40 @@ public class Mediator implements WSClientMediator {
 		else
 			return false;
 
-		Buyer buyer = new Buyer(mgr.getUserName(), this.serverIp, this.serverPort);
+// TODO del
+//		Buyer buyer = new Buyer(mgr.getUserName(), this.serverIp, this.serverPort);
+//
+//		buyer.getProducts().add(product);
+//
+//		if (!getNetMed().fetchRelevantSellers(buyer))
+//			logger.error("Failed to issue current user list refresh");
+		
+		Vector<String> products = new Vector<String>();
+		products.add(product);
+		
+		if (!wscMed.getInterestedUsers(User.sellerType, products)) {
+			logger.error("Error in get interested sellers!");
+		}
 
-		buyer.getProducts().add(product);
-
-		if (!getNetMed().fetchRelevantSellers(buyer))
-			logger.error("Failed to issue current user list refresh");
-
-		return flag;
+		return true;
 	}
 	
 	public void fetchRelevantBuyers() {
-				
-		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort);
 		
-		for (String prod : mgr.getProducts())
-			seller.getProducts().add(prod);
+//TODO del
+//		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort);
+//		
+//		for (String prod : mgr.getProducts())
+//			seller.getProducts().add(prod);
+//		
+//		if (!netMed.fetchRelevantBuyers(seller))
+//			logger.error("Failed to issue buyer list refresh");
 		
-		if (!netMed.fetchRelevantBuyers(seller))
-			logger.error("Failed to issue buyer list refresh");
+		if (!wscMed.getInterestedUsers(User.buyerType, mgr.getProducts())) {
+			logger.error("Error in get interested buyers!");
+		}
 	}
-	
+
 	/* 
 	 * TODO: prevents AcceptOffer (buyer PoV) from sending
 	 * DROP_OFFER messages to ALL potential sellers
