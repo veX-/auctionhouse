@@ -3,7 +3,6 @@ package wsc;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.Scanner;
 
 import javax.xml.namespace.*;
 import javax.xml.rpc.ServiceException;

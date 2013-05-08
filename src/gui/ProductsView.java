@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -37,7 +38,8 @@ public class ProductsView extends JFrame {
 	private JPanel wrapper;
 	private JButton btnLogout;
 	private JTable table;
-	private final LoginPanel loginPanel;
+	final LoginPanel loginPanel;
+	final RegisterUserPanel registerPanel;
 
 	public ProductsView(GUIMediator med) {
 		this.setLocationRelativeTo(null);
@@ -45,10 +47,12 @@ public class ProductsView extends JFrame {
 		med.registerProductsView(this);
 
 		setTitle(TITLE);
+		registerPanel = new RegisterUserPanel(this);
 		loginPanel = new LoginPanel(this);
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addLoginPanel();
+
 		this.setVisible(true);
 	}
 
@@ -66,6 +70,13 @@ public class ProductsView extends JFrame {
 
 	private void addLoginPanel() {
 		this.getContentPane().add(loginPanel);
+		this.setSize(400, 200);
+		setLocationRelativeTo(null);
+	}
+
+	public void addRegisterPanel() {
+		this.getContentPane().add(registerPanel);
+		this.setSize(0, 0); // don't know why but this makes it work
 		this.setSize(400, 200);
 		setLocationRelativeTo(null);
 	}
@@ -160,6 +171,18 @@ public class ProductsView extends JFrame {
 		prodPane.repaint();
 	}
 
+	public void register(String username, String password, String type) {
+		if (!med.register(username, password, type)) {
+			JOptionPane.showMessageDialog(getParent(), "Register failed", 
+				    "Login info error",
+				    JOptionPane.PLAIN_MESSAGE);
+			return;
+		}
+		this.remove(registerPanel);
+		addLoginPanel();
+		this.getContentPane().repaint();
+	}
+
 	public void logIn(String username, String password, String type) {
 		if (med.logIn(username, password, type)) {
 			this.getContentPane().remove(loginPanel);
@@ -170,6 +193,11 @@ public class ProductsView extends JFrame {
 			this.getContentPane().repaint();
 			
 			med.postGUIInit();
+		}
+		else {
+			JOptionPane.showMessageDialog(getParent(), "Login failed", 
+				    "Login info error",
+				    JOptionPane.PLAIN_MESSAGE);
 		}
 	}
 

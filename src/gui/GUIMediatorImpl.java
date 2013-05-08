@@ -17,8 +17,8 @@ public class GUIMediatorImpl implements GUIMediator {
 	}
 
 	@Override
-	public boolean register(String username) {
-		return med.register(username);
+	public boolean register(String username, String pass, String type) {
+		return med.register(username, pass, type);
 	}
 
 	@Override

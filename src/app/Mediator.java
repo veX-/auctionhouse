@@ -194,7 +194,7 @@ public class Mediator implements WSClientMediator {
 		return index;
 	}
 
-	public boolean register(String username) {
+	public boolean register(String username, String pass, String type) {
 		// TODO register to database
 		return true;
 	}

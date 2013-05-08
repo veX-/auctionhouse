@@ -8,7 +8,7 @@ import app.Command;
 
 public interface GUIMediator {
 	/* Communication from an implementation of GUIMediator to Mediator */
-	public boolean register(String username);
+	public boolean register(String username, String pass, String type);
 
 	public boolean logIn(String username, String password, String type);
 
