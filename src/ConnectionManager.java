@@ -1,10 +1,9 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class ConnectionManager {
-	private Connection conn = null;
+	private static Connection conn = null;
 
 	public ConnectionManager() {
 
@@ -40,7 +39,7 @@ public class ConnectionManager {
 	
 	public Connection getConnection() {
 		if (conn == null)
-			createConnection();
+			return createConnection();
 		return conn;
 	}
 	
