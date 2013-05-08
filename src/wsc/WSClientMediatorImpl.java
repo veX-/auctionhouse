@@ -168,10 +168,11 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void testGetDb() {
 		call.setOperationName(new QName("getDB"));
 		try {
-			Object r = call.invoke(new Object[]{"me", "buyer", "cevaip:altcevaport"});
+			Object r = call.invoke(new Object[]{"me", "buyer", "127.0.0.1:60001"});
 			if (r == null) {
 				System.out.println("No results");
 			}
@@ -180,11 +181,12 @@ public class WSClientMediatorImpl implements WSClientMediator {
 				Iterator<String> it = users.keys();
 				while (it.hasNext()) {
 					String username = (String)it.next();
+					System.out.println("Username: " + username);
 					try {
 						JSONArray products = (JSONArray)users.get(username);
 						int n = products.length();
 						for (int i = 0; i < n; i++)
-							System.out.println(products.get(i));
+							System.out.println("\t" + products.get(i));
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
