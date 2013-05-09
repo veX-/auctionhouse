@@ -12,8 +12,63 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class AuctionHouseService {
-	
+
 	private static ConnectionManager cm = new ConnectionManager();
+
+	public boolean logIn(String username, String password, String type,
+						 String userConn) {
+
+		System.out.println(username + " " + password + " " + type + " " + userConn);
+
+		String getUserQuery		= "SELECT * FROM users WHERE Name=?";
+		String updateUserQuery	= "UPDATE users SET Ip=?, Port=? WHERE Id=?";
+		ResultSet res;
+
+		try {
+			PreparedStatement stmt = cm.getConnection().
+					prepareStatement(getUserQuery, Statement.RETURN_GENERATED_KEYS);
+			stmt.setString(1, username);
+			
+			res = stmt.executeQuery();
+
+			/* user not registered */
+			if (!res.next())
+				return false;
+
+			int uId = res.getInt("id");
+			
+			System.out.println("password: '" + res.getString("password") + "'" + password);
+
+			/* password mismatch */
+			if (!res.getString("password").equals(password))
+				return false;
+
+			/* type mismatch or user already logged in (has ip and port) */
+			if (!res.getString("usertype").equals(type) || res.getString("ip") != null ||
+				 res.getString("port") != null) {
+				return false;
+			}
+
+			/* user can be successfully logged in. Update his entry in the users table */
+			String updateQ = "UPDATE users SET Ip=?, Port=? WHERE Id=?";
+			String[] connInfo = userConn.split(":");
+			stmt = cm.getConnection().prepareStatement(updateQ);
+			stmt.setString(1, connInfo[0]);
+			stmt.setInt(2, Integer.parseInt(connInfo[1]));
+			stmt.setInt(3, uId);
+			stmt.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return true;
+	}
+	
+	public boolean logOut() {
+		
+		return false;
+	}
 	
 	public boolean register(String username, String pass, String type, String products) {
 		/* Don't know what's the trick but parameters are mixed up. */
@@ -121,14 +176,7 @@ public class AuctionHouseService {
 				users.put(e.getKey(), products);
 			}
 
-			/* Update connection info */
-			String updateQ = "UPDATE users SET Ip=?, Port=? WHERE Name=?";
-			String[] connInfo = userconn.split(":");
-			stmt = cm.getConnection().prepareStatement(updateQ);
-			stmt.setString(1, connInfo[0]);
-			stmt.setInt(2, Integer.parseInt(connInfo[1]));
-			stmt.setString(3, username);
-			stmt.executeUpdate();
+			
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (JSONException e) {

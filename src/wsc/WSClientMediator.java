@@ -14,7 +14,7 @@ public interface WSClientMediator {
 
 	/* user presence functions */
 	public boolean logIn(String username, String password, String type,
-			 						String ip, int port, Vector<String> products);
+			 			 String listenIp, int listenPort);
 
 	public boolean logOut(String username);
 

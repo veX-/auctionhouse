@@ -74,15 +74,16 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		return ret;
 	}
 
-	public boolean logIn(String username, String password,
-			String type, String listenIp, int listenPort, Vector<String> products) {
+	public boolean logIn(String username, String password, String type,
+						 String listenIp, int listenPort) {
 
 		boolean ret = false;
 
 		call.setOperationName(new QName("logIn"));
-		Object[] params = new Object[1];
+		
 		try {
-			Object r = call.invoke(params);
+			Object r = call.invoke(new Object[] { username, password, type,
+												  listenIp + ":" + listenPort });
 			if (r == null) {
 				logger.error("No results");
 			}

@@ -239,7 +239,7 @@ public class Mediator {
 		logger.info("LOADING PRODLIST");
 		loadInitialProdList(username, type, products);
 
-		if (!wscMed.logIn(username, password, type, serverIp, serverPort, products)) {
+		if (!wscMed.logIn(username, password, type, serverIp, serverPort)) {
 
 			logger.fatal("[Mediator]: Login Authentication failed!");
 			return false;
