@@ -52,12 +52,12 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		logger = Logger.getLogger(WSClientMediatorImpl.class.getName());
 	}
 
-	public boolean register() {
+	public boolean register(String username, String pass, String type, String products) {
 
 		boolean ret = false;
 
 		call.setOperationName(new QName("register"));
-		Object[] params = new Object[1];
+		Object[] params = new Object[]{username, pass, type, products};
 		try {
 			Object r = call.invoke(params);
 			if (r == null) {

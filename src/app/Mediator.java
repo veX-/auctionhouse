@@ -6,6 +6,7 @@ import gui.GUIMediatorImpl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -196,14 +197,26 @@ public class Mediator {
 		return index;
 	}
 
+	/*	register to database*/
 	public boolean register(String username, String pass, String type) {
-		// TODO register to database
-		return true;
+		Vector<String> products = tempReadConfig(username, type);
+		if (products == null || products.size() == 0)
+			return false;
+		StringBuilder prods = new StringBuilder();
+		Iterator<String> it = products.iterator();
+		while (it.hasNext())
+			prods.append(it.next() + ",");
+		int len = prods.length();
+		String prodList = prods.substring(0, len-1);
+		System.out.println(String.format("Register user %s with product list\n\t%s", 
+				username, prodList));
+		return wscMed.register(username, pass, type, prodList);
 	}
 
 	public void initLogger() {
 		logger = Logger.getLogger(Mediator.class.getName());
 		netMed.initLogger();
+		wscMed.initLogger();
 		NetworkServer.initLogger();
 	}
 

@@ -15,10 +15,12 @@ public class AuctionHouseService {
 	
 	private static ConnectionManager cm = new ConnectionManager();
 	
-	public boolean register(String username, String type, String products) {
-		System.out.println("Register:" + username + " - " + type + " - " + products);
+	public boolean register(String username, String pass, String type, String products) {
+		/* Don't know what's the trick but parameters are mixed up. */
+		//String aux = pass; pass = products; products = type; type = aux;
+		System.out.println("Register:" + username + " - " + pass + " - " + type + " - " + products);
 
-		String regUQ = "INSERT INTO users(Name, UserType) VALUES(?, ?)";
+		String regUQ = "INSERT INTO users(Name, Password, UserType) VALUES(?, ?, ?)";
 		String regPQ = "INSERT INTO products(Name) VALUES(?)";
 		String getPQ = "SELECT * FROM products WHERE Name=?";
 		String reqAQ = "INSERT INTO users_products VALUES(?, ?)";
@@ -29,7 +31,10 @@ public class AuctionHouseService {
 			PreparedStatement stmt = cm.getConnection().
 					prepareStatement(regUQ, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, username);
-			stmt.setString(2, type);
+			if (pass == null || pass.isEmpty())
+				pass = "NULL";
+			stmt.setString(2, pass);
+			stmt.setString(3, type);
 			int success = stmt.executeUpdate();
 			if (success < 1)
 				return false;
