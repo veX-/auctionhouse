@@ -152,7 +152,31 @@ public class AuctionHouseService {
 		}
 		return true;
 	}
-	
+
+	private class QUser {
+		String username;
+		String ip;
+		Integer port;
+		public QUser(String username, String ip, Integer port) {
+			super();
+			this.username = username;
+			this.ip = ip;
+			this.port = port;
+		}
+
+		public boolean equals(Object o) {
+			if (o instanceof QUser) {
+				QUser qu = (QUser)o;
+				return qu.hashCode() == this.hashCode();
+			}
+			return false;
+		}
+
+		public int hashCode() {
+			return username.hashCode() * 23 + ip.hashCode() * 17 + port.hashCode();
+		}
+	}
+
 	/**
 	 * Return relevant users and the products they want/offer as JSON and update user connection details.
 	 *
@@ -163,20 +187,26 @@ public class AuctionHouseService {
 	 */
 	public String getDB(String username, String type, String userconn) {
 		JSONObject users = new JSONObject();
-		JSONArray products = new JSONArray();
-		HashMap<String, List<String>> temp = new HashMap<String, List<String>>();
+		HashMap<QUser, List<String>> temp = new HashMap<QUser, List<String>>();
 
 		/* Select info from db */
-		String prodQ = "SELECT u.Name user, p.Name prod FROM users u, products p, users_products up, " + 
-				"(SELECT u.UserType, ProductId from users_products up, users u where u.Name=?) res " + 
-				"WHERE p.Id=res.ProductId AND u.UserType!=res.UserType AND p.Id=up.ProductId AND u.Id=up.UserId";
+		String prodQ = "SELECT u.Name user, u.Ip ip, u.Port port, p.Name prod " +
+					"FROM users u, products p, users_products up " +
+					"WHERE p.Id IN (select distinct ProductId from users_products up, users u where u.Name=?) " +
+					"AND (u.UserType!=? OR u.Name=?) AND p.Id=up.ProductId AND u.Id=up.UserId AND u.Ip IS NOT NULL " +
+					"ORDER BY u.Name;";
 		PreparedStatement stmt;
+
 		try {
 			stmt = cm.getConnection().prepareStatement(prodQ);
 			stmt.setString(1, username);
+			stmt.setString(2, type);
+			stmt.setString(3, username);
+			System.out.println("Execute query:" + stmt);
 			ResultSet rs = stmt.executeQuery();
+
 			while (rs.next()) {
-				String user = rs.getString("user");
+				QUser user = new QUser(rs.getString("user"), rs.getString("ip"), rs.getInt("port"));
 				if (temp.get(user) == null)
 					temp.put(user, new ArrayList<String>());
 				List<String> prods = temp.get(user);
@@ -186,13 +216,19 @@ public class AuctionHouseService {
 			}
 
 			/* Prepare json to be returned to client. */
-			for (Map.Entry<String, List<String>> e : temp.entrySet()) {
+			for (Map.Entry<QUser, List<String>> e : temp.entrySet()) {
+				QUser qu = e.getKey();
+				System.out.println("\tFound user " + qu.username);
+
+				JSONArray products = new JSONArray();
 				for (String s : e.getValue())
 					products.put(s);
-				users.put(e.getKey(), products);
+				JSONObject userInfo = new JSONObject();
+				userInfo.put("ip", qu.ip);
+				userInfo.put("port", qu.port);
+				userInfo.put("products", products);
+				users.put(qu.username, userInfo);
 			}
-
-			
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (JSONException e) {
