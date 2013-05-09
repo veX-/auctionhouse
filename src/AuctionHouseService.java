@@ -2,7 +2,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +39,13 @@ public class AuctionHouseService {
 			System.out.println("password: '" + res.getString("password") + "'" + password);
 
 			/* password mismatch */
-			if (!res.getString("password").equals("NULL"))
-				if (!res.getString("password").equals(password))
-					return false;
+			String dbPassword = res.getString("password");
+			
+			if (dbPassword == null && !password.isEmpty())
+				return false;
+
+			if (dbPassword != null && !dbPassword.equals(password))
+				return false;
 
 			/* type mismatch or user already logged in (has ip and port) */
 			if (!res.getString("usertype").equals(type) || res.getString("ip") != null ||
@@ -99,8 +102,9 @@ public class AuctionHouseService {
 					prepareStatement(regUQ, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, username);
 			if (pass == null || pass.isEmpty())
-				pass = "NULL";
-			stmt.setString(2, pass);
+				stmt.setNull(2, java.sql.Types.VARCHAR);
+			else
+				stmt.setString(2, pass);
 			stmt.setString(3, type);
 			int success = stmt.executeUpdate();
 			if (success < 1)

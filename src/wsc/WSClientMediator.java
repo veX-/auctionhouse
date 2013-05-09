@@ -1,6 +1,5 @@
 package wsc;
 
-import java.util.Vector;
 
 /**
  * Interface between the Web Service and the main Application Mediator class
@@ -20,7 +19,7 @@ public interface WSClientMediator {
 
 	public boolean register(String username, String pass, String type, String products);
 
-	public boolean getInterestedUsers(String type, Vector<String> products);
+	public boolean getInterestedUsers(String username, String type, String connInfo);
 
 	public boolean handleLogoutEvent(String userName);
 	/* buyer action functions */

@@ -6,8 +6,6 @@ import java.util.Random;
 
 import javax.swing.SwingWorker;
 
-import app.model.User;
-
 /**
  * SystemSimulator - Mockup of the future Web Service Client
  * 
@@ -56,10 +54,6 @@ public class SystemSimulator extends SwingWorker<Boolean, String> {
 
 			switch (action) {
 			case LOG_IN:
-				String userType = rnd.nextInt(2) == 0 ? User.buyerType
-						: User.sellerType;
-				int noProd = rnd.nextInt(5) + 3;
-
 				userIndex++;
 
 				break;

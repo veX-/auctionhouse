@@ -465,8 +465,9 @@ public class Mediator {
 		Vector<String> products = new Vector<String>();
 		products.add(product);
 		
-		if (!wscMed.getInterestedUsers(User.sellerType, products)) {
-			logger.error("Error in get interested sellers!");
+		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.sellerType,
+									   getListenIp() + ":" + getListenPort())) {
+			logger.error("Error in get interested sellers");
 		}
 
 		return true;
@@ -483,7 +484,8 @@ public class Mediator {
 //		if (!netMed.fetchRelevantBuyers(seller))
 //			logger.error("Failed to issue buyer list refresh");
 		
-		if (!wscMed.getInterestedUsers(User.buyerType, mgr.getProducts())) {
+		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.buyerType,
+					  				   getListenIp() + ":" + getListenPort())) {
 			logger.error("Error in get interested buyers!");
 		}
 	}

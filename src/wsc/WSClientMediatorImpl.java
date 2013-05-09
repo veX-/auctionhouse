@@ -3,7 +3,6 @@ package wsc;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -123,49 +122,101 @@ public class WSClientMediatorImpl implements WSClientMediator {
 	}
 
 	@SuppressWarnings("unchecked")
-	public boolean getInterestedUsers(String type, Vector<String> products) {
-		
-		HashMap<String, User> users = null;
+	public boolean getInterestedUsers(String username, String type, String connInfo) {
+		String result = null;
 
-		call.setOperationName(new QName("getInterested"));
-		Object[] params = new Object[2];
+		call.setOperationName(new QName("getDB"));
+		
 		try {
-			Object r = call.invoke(params);
+			Object r = call.invoke(new Object[] { username, type, connInfo });
 			if (r == null) {
 				logger.error("No results");
 			}
 			else {
-				users = (HashMap<String, User>)r;
+				result = (String)r;
 			}
 
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 
-		logger.info("Interested users: " + users);
+		logger.info("Interested users: " + result);
 
-		if (users == null)
+		if (result == null)
 			return false;
-
-		if (type.equals(User.sellerType)) {
-			for (User user : users.values()) {
-				for (String prod : user.getProducts()) {
-					med.saveUserConnectInfo(user.getName(), prod, user.getIp(), user.getPort());
-				}
-			}
-		} else {
-			/* notify all buyers that we're online. some buyers will reply with offer requests */
-			Seller seller = new Seller(med.getUserName(), med.getListenIp(), med.getListenPort());
-			seller.setProducts(products);
-			
-			for (User u : users.values()) {
-				if (!med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
-													u.getIp(), u.getPort(), seller)) {
-					logger.error("Fail to send login notification to buyer " + u.getName());
-				}
-			}
-		}
 		
+		String self = med.getUserName();
+
+		try {
+			if (type.equals(User.sellerType)) {
+				JSONObject users = new JSONObject(result);
+				
+				Iterator<String> it = users.keys();
+				
+				while (it.hasNext()) {
+					String name = (String)it.next();
+					
+					if (name.equals(self))
+						continue;
+	
+					JSONObject info = (JSONObject)users.get(name);
+					
+					String listenIp = (String)info.get("ip");
+					Integer listenPort = (Integer)info.get("port");
+					
+					JSONArray products = (JSONArray)info.get("products");
+					
+					int n = products.length();
+					for (int i = 0; i < n; i++)
+						med.saveUserConnectInfo(name, (String)products.get(i),
+												listenIp, listenPort);
+				}
+				
+			} else {
+				JSONObject users = null;
+				Seller seller = null; 
+				
+				users = new JSONObject(result);
+				
+				JSONArray selfArray = (JSONArray)users.get(self);
+				Vector<String> selfProducts = new Vector<String>();
+				
+				int n = selfArray.length();
+				for (int i = 0; i < n; i++)
+					selfProducts.add((String)selfArray.get(i));
+			
+				seller = new Seller(med.getUserName(), med.getListenIp(), med.getListenPort());
+				seller.setProducts(selfProducts);
+			
+				Iterator<String> it = users.keys();
+				while (it.hasNext()) {
+					String name = (String)it.next();
+			
+					if (name.equals(self))
+						continue;
+				
+					JSONObject info = (JSONObject)users.get(name);
+					
+					String buyerIp = (String)info.get("ip");
+					Integer buyerPort = (Integer)info.get("port");
+					
+					JSONArray products = (JSONArray)info.get("products");
+					
+					//TODO: locally save the entire prodlist for all buyers
+					
+					if (!med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
+							buyerIp, buyerPort, seller)) {
+							logger.error("Fail to send login notification to buyer " + name);
+					}
+				}
+			}	
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return true;
 	}
 	
