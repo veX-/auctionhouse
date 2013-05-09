@@ -77,6 +77,14 @@ public class AuctionHouseService {
 		return true;
 	}
 	
+	/**
+	 * Return relevant users and the products they want/offer as JSON and update user connection details.
+	 *
+	 * @param username User issuing the request.
+	 * @param type Type of user issuing the request.
+	 * @param userconn ip:port for username.
+	 * @return relevant users and associated products.
+	 */
 	public String getDB(String username, String type, String userconn) {
 		JSONObject users = new JSONObject();
 		JSONArray products = new JSONArray();
@@ -93,12 +101,12 @@ public class AuctionHouseService {
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				String user = rs.getString("user");
-				System.out.println(user);
 				if (temp.get(user) == null)
 					temp.put(user, new ArrayList<String>());
 				List<String> prods = temp.get(user);
 				String prod = rs.getString("prod");
-				prods.add(prod);
+				if (!prods.contains(prod))
+					prods.add(prod);
 			}
 
 			/* Prepare json to be returned to client. */
@@ -107,6 +115,15 @@ public class AuctionHouseService {
 					products.put(s);
 				users.put(e.getKey(), products);
 			}
+
+			/* Update connection info */
+			String updateQ = "UPDATE users SET Ip=?, Port=? WHERE Name=?";
+			String[] connInfo = userconn.split(":");
+			stmt = cm.getConnection().prepareStatement(updateQ);
+			stmt.setString(1, connInfo[0]);
+			stmt.setInt(2, Integer.parseInt(connInfo[1]));
+			stmt.setString(3, username);
+			stmt.executeUpdate();
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (JSONException e) {
