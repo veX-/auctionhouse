@@ -186,7 +186,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 						JSONArray products = (JSONArray)users.get(username);
 						int n = products.length();
 						for (int i = 0; i < n; i++)
-							System.out.println("\t" + products.get(i));
+							System.out.println(products.get(i));
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}

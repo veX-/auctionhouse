@@ -6,7 +6,7 @@ DROP TABLE products;
 
 CREATE TABLE users(
 Id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(Id),
-Name varchar(20) NOT NULL,
+Name varchar(20) NOT NULL, UNIQUE(Name),
 UserType varchar(10) NOT NULL,
 Ip varchar(15),
 Port INTEGER
@@ -14,7 +14,7 @@ Port INTEGER
 
 CREATE TABLE products (
 Id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(Id),
-Name varchar(20) NOT NULL	
+Name varchar(20) NOT NULL, UNIQUE(Name)
 );
 
 CREATE TABLE users_products (
