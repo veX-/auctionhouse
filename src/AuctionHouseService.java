@@ -2,6 +2,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ public class AuctionHouseService {
 		System.out.println(username + " " + password + " " + type + " " + userConn);
 
 		String getUserQuery		= "SELECT * FROM users WHERE Name=?";
-		String updateUserQuery	= "UPDATE users SET Ip=?, Port=? WHERE Id=?";
 		ResultSet res;
 
 		try {
@@ -40,8 +40,9 @@ public class AuctionHouseService {
 			System.out.println("password: '" + res.getString("password") + "'" + password);
 
 			/* password mismatch */
-			if (!res.getString("password").equals(password))
-				return false;
+			if (!res.getString("password").equals("NULL"))
+				if (!res.getString("password").equals(password))
+					return false;
 
 			/* type mismatch or user already logged in (has ip and port) */
 			if (!res.getString("usertype").equals(type) || res.getString("ip") != null ||
@@ -65,14 +66,25 @@ public class AuctionHouseService {
 		return true;
 	}
 	
-	public boolean logOut() {
-		
-		return false;
+	public boolean logOut(String username) {
+		int success = 0;
+		String logoutQ = "UPDATE users SET Ip=?, Port=? WHERE Name=?";
+		PreparedStatement stmt;
+
+		try {
+			stmt = cm.getConnection().prepareStatement(logoutQ);
+			stmt.setNull(1, Types.VARCHAR);
+			stmt.setNull(2, Types.INTEGER);
+			stmt.setString(3, username);
+			success = stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return success > 0;
 	}
 	
 	public boolean register(String username, String pass, String type, String products) {
-		/* Don't know what's the trick but parameters are mixed up. */
-		//String aux = pass; pass = products; products = type; type = aux;
 		System.out.println("Register:" + username + " - " + pass + " - " + type + " - " + products);
 
 		String regUQ = "INSERT INTO users(Name, Password, UserType) VALUES(?, ?, ?)";

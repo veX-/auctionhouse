@@ -104,7 +104,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		boolean ret = false;
 
 		call.setOperationName(new QName("logOut"));
-		Object[] params = new Object[1];
+		Object[] params = new Object[] {username};
 		try {
 			Object r = call.invoke(params);
 			if (r == null) {
