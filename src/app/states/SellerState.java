@@ -34,21 +34,21 @@ public class SellerState extends State {
 	}
 
 	@Override
-	public void login(String username, Vector<String> products) {
+	public void login(String username, String ip, int port, Vector<String> products) {
 		logger = Logger.getLogger(SellerState.class.getName());
-		user = new Seller(username, products);
+		user = new Seller(username, ip, port, products);
 
 		logger.debug("Created seller " + username);
 
 		// send login notification to all relevant buyers
-		Map<String, GenericUser> buyers = med.getRelevantUsers();
+		Map<String, User> buyers = med.getRelevantUsers();
 		if (buyers == null)
 			return;
-		for (Map.Entry<String, GenericUser> e : buyers.entrySet()) {
-			GenericUser gu = e.getValue();
+		for (Map.Entry<String, User> e : buyers.entrySet()) {
+			User gu = e.getValue();
 			if (!med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
 					gu.getIp(), gu.getPort(), user))
-					logger.error("Fail to send login notification to buyer " + gu.getUsername());
+					logger.error("Fail to send login notification to buyer " + gu.getName());
 			}
 	}
 

@@ -48,8 +48,8 @@ public class StateManager {
 		return currentState.getProducts();
 	}
 
-	public void login(String username, Vector<String> products) {
-		currentState.login(username, products);
+	public void login(String username, String ip, int port, Vector<String> products) {
+		currentState.login(username, ip, port, products);
 	}
 
 	public boolean logout() {

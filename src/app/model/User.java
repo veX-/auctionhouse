@@ -2,7 +2,14 @@ package app.model;
 
 import java.util.Vector;
 
-abstract public class User implements java.io.Serializable {
+/**
+ * Please instantiate this only if you refer to a generic user (usual use case:
+ * connection info)
+ *
+ * @author Andreea HODEA, Liviu CHIRCU
+ *
+ */
+public class User implements java.io.Serializable {
 
 	private static final long serialVersionUID = 2697874685391642227L;
 
@@ -83,6 +90,18 @@ abstract public class User implements java.io.Serializable {
 	
 	public void setProducts(Vector<String> products) {
 		this.products = products;
+	}
+
+	public boolean contains(String product) {
+		return products.contains(product);
+	}
+
+	public int getNoOfProducts() {
+		return this.products.size();
+	}
+
+	public String getProduct(int index) {
+		return this.products.get(index);
 	}
 
 	@Override

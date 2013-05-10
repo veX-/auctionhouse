@@ -15,9 +15,8 @@ import app.LaunchOfferReqComm;
 import app.Mediator;
 import app.ProductListModel;
 import app.model.Buyer;
-import app.model.GenericUser;
-import app.model.Seller;
 import app.model.User;
+import app.model.Seller;
 
 public class BuyerState extends State {
 	private Logger logger = null;
@@ -40,24 +39,24 @@ public class BuyerState extends State {
 	}
 
 	@Override
-	public void login(String username, Vector<String> products) {
+	public void login(String username, String ip, int port, Vector<String> products) {
 		logger = Logger.getLogger(BuyerState.class.getName());
-		user = new Buyer(username, products);
+		user = new Buyer(username, ip, port, products);
 
 		logger.debug("Created seller " + username);
 
 		// just for the sake of previous versions compatibility, saveUserConnectInfo for each relevant user
-		Map<String, GenericUser> sellers = med.getRelevantUsers();
+		Map<String, User> sellers = med.getRelevantUsers();
 		if (sellers == null)
 			return;
-		for (Map.Entry<String, GenericUser> e : sellers.entrySet()) {
-			GenericUser gu = e.getValue();
-			String name = gu.getUsername();
-			String ip = gu.getIp();
-			Integer port = gu.getPort();
+		for (Map.Entry<String, User> e : sellers.entrySet()) {
+			User gu = e.getValue();
+			String name = gu.getName();
+			String connip = gu.getIp();
+			Integer connport = gu.getPort();
 
 			for (int i = 0, n = gu.getNoOfProducts(); i < n; i++)
-				med.saveUserConnectInfo(name, gu.getProduct(i),	ip, port);
+				med.saveUserConnectInfo(name, gu.getProduct(i),	connip, connport);
 		}
 	}
 

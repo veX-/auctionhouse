@@ -19,7 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.Mediator;
-import app.model.GenericUser;
+import app.model.User;
 
 public class WSClientMediatorImpl implements WSClientMediator {
 
@@ -27,12 +27,12 @@ public class WSClientMediatorImpl implements WSClientMediator {
 	private Logger logger;
 	private Call call = null;
 	private Mediator med;
-	private Map<String, GenericUser> relevantUsers;
+	private Map<String, User> relevantUsers;
 
 	public WSClientMediatorImpl(String url, Mediator med) {
 
 		this.med = med;
-		this.relevantUsers = new HashMap<String, GenericUser>();
+		this.relevantUsers = new HashMap<String, User>();
 		
 		initLogger();
 
@@ -93,7 +93,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 			else {
 				ret = (boolean)r;
 				if (ret)
-					/* Fetch relevant users TODO */
+					/* Fetch relevant users */
 					myProds = getInterestedUsers(username, type, String.format("%s:%s", listenIp, listenPort));
 			}
 
@@ -185,7 +185,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 					String listenIp = (String)info.get("ip");
 					Integer listenPort = (Integer)info.get("port");
 					Vector<String> currProds = getProductsFromJSON(info);
-					relevantUsers.put(name, new GenericUser(username, listenIp, listenPort, currProds));
+					relevantUsers.put(name, new User(username, listenIp, listenPort, currProds));
 				}
 			}
 		} catch (JSONException e) {
@@ -235,15 +235,25 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		return false;
 	}
 
-	public Map<String, GenericUser> getRelevantUsers() {
+	public Map<String, User> getRelevantUsers() {
 		return relevantUsers;
 	}
 
-	public Map<String, GenericUser> getRelevantUsers(String product) {
-		Map<String, GenericUser> someUsers = new HashMap<String, GenericUser>();
-		for (Map.Entry<String, GenericUser> e : relevantUsers.entrySet())
+	public Map<String, User> getRelevantUsers(String product) {
+		Map<String, User> someUsers = new HashMap<String, User>();
+		for (Map.Entry<String, User> e : relevantUsers.entrySet())
 			if (e.getValue().contains(product))
 				someUsers.put(e.getKey(), e.getValue());
 		return relevantUsers;
+	}
+
+	@Override
+	public void addRelevant(User user) {
+		relevantUsers.put(user.getName(), user);	
+	}
+
+	@Override
+	public void removeRelevant(String user) {
+		relevantUsers.remove(user);
 	}
 }

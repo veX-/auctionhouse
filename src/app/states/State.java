@@ -35,7 +35,7 @@ public abstract class State {
 	 */
 	public abstract String getListName();
 
-	public abstract void login(String username, Vector<String> products);
+	public abstract void login(String username, String ip, int port, Vector<String> products);
 
 	public abstract boolean logout();
 

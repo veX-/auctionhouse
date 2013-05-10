@@ -1,7 +1,6 @@
 package app;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -24,22 +23,17 @@ public class LaunchOfferReqComm implements Command {
 		logger = Logger.getLogger(LaunchOfferReqComm.class.getName());
 		String productName = med.getProduct(row, col);
 
-		if (med.fetchRelevantSellers(productName)) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		else {
-			Hashtable<String, User> relUsers = med.getRelUsers();
-			Map<String, String> users = new HashMap<String, String>();
-			for (String key : relUsers.keySet())
-				if (relUsers.get(key).getProducts().contains(productName))
-					users.put(key, State.STATE_NOOFFER);
-			med.updateUsersList(productName, users);
-		}
+		Map<String, User> relUsers = med.getRelevantUsers(productName);
+		if (relUsers.size() == 0)
+			return;
 
+		/* Update GUI */
+		Map<String, String> users = new HashMap<String, String>();
+		for (String key : relUsers.keySet())
+			users.put(key, State.STATE_NOOFFER);
+		med.updateUsersList(productName, users);
+
+		/* Send launch offer notification */
 		logger.debug("Launching offer");
 		med.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
 				med.getUserName(), productName);

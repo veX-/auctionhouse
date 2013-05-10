@@ -3,7 +3,7 @@ package wsc;
 import java.util.Map;
 import java.util.Vector;
 
-import app.model.GenericUser;
+import app.model.User;
 
 /**
  * Interface between the Web Service and the main Application Mediator class
@@ -24,9 +24,12 @@ public interface WSClientMediator {
 	public boolean register(String username, String pass, String type, String products);
 
 	/* Return all relevant/interested users with relevant info associated. */
-	public Map<String, GenericUser> getRelevantUsers();
+	public Map<String, User> getRelevantUsers();
 	/* Return info of users relevant to product. The caller usually calls this when needs connection info. */
-	public Map<String, GenericUser> getRelevantUsers(String product);
+	public Map<String, User> getRelevantUsers(String product);
+
+	public void addRelevant(User user);
+	public void removeRelevant(String user);
 
 	public boolean handleLogoutEvent(String userName);
 }

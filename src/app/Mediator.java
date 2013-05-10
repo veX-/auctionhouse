@@ -25,7 +25,6 @@ import wsc.WSClientMediator;
 import wsc.WSClientMediatorImpl;
 import app.model.Seller;
 import app.model.User;
-import app.model.GenericUser;
 import app.states.RequestTypes;
 import app.states.State;
 import app.states.StateManager;
@@ -95,11 +94,11 @@ public class Mediator {
 		return this.relevantUsers;
 	}
 
-	public Map<String, GenericUser> getRelevantUsers() {
+	public Map<String, User> getRelevantUsers() {
 		return wscMed.getRelevantUsers();
 	}
 
-	public Map<String, GenericUser> getRelevantUsers(String product) {
+	public Map<String, User> getRelevantUsers(String product) {
 		return wscMed.getRelevantUsers(product);
 	}
 
@@ -247,7 +246,7 @@ public class Mediator {
 			return false;
 		}
 		createTableModel(username, type, products);
-		mgr.login(username, products);
+		mgr.login(username, serverIp, serverPort, products);
 
 		return true;
 	}
@@ -417,7 +416,10 @@ public class Mediator {
 					localProdList.add(prod);
 				}
 			}
-			
+
+			wscMed.addRelevant(seller);
+			System.out.println("Relevant users: " + wscMed.getRelevantUsers());
+
 			relevantUsers.put(seller.getName(), seller);
 			guiMed.repaint();
 		}
