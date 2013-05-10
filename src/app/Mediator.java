@@ -5,7 +5,6 @@ import gui.GUIMediatorImpl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
@@ -46,8 +45,6 @@ public class Mediator {
 	 */
 	private Vector<String> inStartupPhase;
 
-	private Hashtable<String, User> relevantUsers;
-
 	public Mediator(String url, String ip, int port, String configFile) {
 		this.serverIp = ip;
 		this.serverPort = port;
@@ -57,8 +54,6 @@ public class Mediator {
 		guiMed = new GUIMediatorImpl(this);
 		wscMed = new WSClientMediatorImpl(url, this);
 		this.inStartupPhase = new Vector<String>();
-
-		this.relevantUsers = new Hashtable<String, User>();
 	}
 
 	public NetworkMediator getNetMed() {
@@ -90,10 +85,6 @@ public class Mediator {
 		return (String) products.getValueFromListCol(row, index);
 	}
 
-	public Hashtable<String, User> getRelUsers() {
-		return this.relevantUsers;
-	}
-
 	public Map<String, User> getRelevantUsers() {
 		return wscMed.getRelevantUsers();
 	}
@@ -103,9 +94,7 @@ public class Mediator {
 	}
 
 	synchronized public void forgetRelevantUser(String userName) {
-		synchronized (relevantUsers) {
-			this.relevantUsers.remove(userName);
-		}
+		wscMed.removeRelevant(userName);
 	}
 
 	public String[] getUsersList(int row) {
@@ -229,7 +218,7 @@ public class Mediator {
 	}
 
 	public boolean logIn(String username, String password, String type) {
-		
+
 		String logFile = String.format(LOG_FILE_FORMAT, username);
 		System.setProperty("logfile.name", logFile);
 		initLogger();
@@ -287,11 +276,11 @@ public class Mediator {
 	public String getUserName() {
 		return mgr.getUserName();
 	}
-	
+
 	public String getListenIp() {
 		return serverIp;
 	}
-	
+
 	public int getListenPort() {
 		return serverPort;
 	}
@@ -359,12 +348,7 @@ public class Mediator {
 	 * @param user
 	 */
 	public void handleLoginEvent(String product, User user) {
-		synchronized (relevantUsers) {
-			User u = relevantUsers.get(user.getName());
-			if (u != null)
-				user.getProducts().addAll(u.getProducts());
-			relevantUsers.put(user.getName(), user);
-		}
+		wscMed.addRelevant(user);
 
 		addUserToList(user.getName(), product);
 		guiMed.repaint();
@@ -378,118 +362,72 @@ public class Mediator {
 	public boolean updateGui(int action, String name, String product, int price) {
 		return mgr.receiveStatusUpdate(action, name, product, price);
 	}
-	
+
 	public void postGUIInit() {
 		mgr.postGUIInit();
 	}
-	
+
 	/**
 	 * Notifies a new system seller of any currently open offer requests
 	 * 
 	 * @param seller - newly logged in seller
 	 */
-		public void handleNewSystemSeller(User seller) {
-	
-			Vector<String> sellerProds = seller.getProducts();
-	
-			Vector<User> destinations = new Vector<User>();
-			destinations.add(seller);
-			
-			logger.debug("Handling new system seller: " + seller.getName());
-			
-			Vector<String> localProdList = new Vector<String>();
-			seller.setProducts(localProdList);
-			
-			for (String prod : mgr.getProducts()) {
-				
-				String status = products.getStatus(prod);
-				
-				if (sellerProds.contains(prod)  && !status.equals(State.STATE_INACTIVE) &&
-						!status.equals(State.STATE_TRANSFERP)) {
-					
-					System.out.println("Notifying open auction for " + prod);
-					netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
-							mgr.getUserName(), this.serverIp,
-							this.serverPort, prod, destinations);
-					
-					addUserToList(seller.getName(), prod);
-					localProdList.add(prod);
-				}
+	public void handleNewSystemSeller(User seller) {
+
+		Vector<String> sellerProds = seller.getProducts();
+
+		Vector<User> destinations = new Vector<User>();
+		destinations.add(seller);
+
+		logger.debug("Handling new system seller: " + seller.getName());
+
+		Vector<String> localProdList = new Vector<String>();
+		seller.setProducts(localProdList);
+
+		for (String prod : mgr.getProducts()) {
+
+			String status = products.getStatus(prod);
+
+			if (sellerProds.contains(prod)  && !status.equals(State.STATE_INACTIVE) &&
+					!status.equals(State.STATE_TRANSFERP)) {
+
+				System.out.println("Notifying open auction for " + prod);
+				netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
+						mgr.getUserName(), this.serverIp,
+						this.serverPort, prod, destinations);
+
+				addUserToList(seller.getName(), prod);
+				localProdList.add(prod);
 			}
-
-			wscMed.addRelevant(seller);
-			System.out.println("Relevant users: " + wscMed.getRelevantUsers());
-
-			relevantUsers.put(seller.getName(), seller);
-			guiMed.repaint();
 		}
+
+		wscMed.addRelevant(seller);
+		logger.debug("Relevant users: " + wscMed.getRelevantUsers());
+
+		guiMed.repaint();
+	}
 
 	/* TODO: verify GUI part */
 	public void saveUserConnectInfo(String userName, String product, String ip, int port) {
 		User u;
-		synchronized (relevantUsers) {
-			u = relevantUsers.get(userName);
-			if (u == null) {
-				Seller seller = new Seller(userName, ip, port);
-				seller.getProducts().add(product);
-				
-				relevantUsers.put(userName, seller);
-				
-				addUserToList(userName, product);
-				guiMed.repaint();
-				return;
-			}
+		Map<String, User> relevantUsers = wscMed.getRelevantUsers();
+		u = relevantUsers.get(userName);
+		if (u == null) {
+			Seller seller = new Seller(userName, ip, port);
+			seller.getProducts().add(product);
+
+			relevantUsers.put(userName, seller);
+
+			addUserToList(userName, product);
+			guiMed.repaint();
+			return;
 		}
 		if (!u.getProducts().contains(product)) {
 			u.getProducts().add(product);
-			
+
 			addUserToList(userName, product);
 			guiMed.repaint();
 		}
-	}
-	
-	public boolean fetchRelevantSellers(String product) {
-		boolean flag = !inStartupPhase.contains(product);
-		if (flag)
-			inStartupPhase.add(product);
-		else
-			return false;
-
-// TODO del
-//		Buyer buyer = new Buyer(mgr.getUserName(), this.serverIp, this.serverPort);
-//
-//		buyer.getProducts().add(product);
-//
-//		if (!getNetMed().fetchRelevantSellers(buyer))
-//			logger.error("Failed to issue current user list refresh");
-		
-		Vector<String> products = new Vector<String>();
-		products.add(product);
-/*		
-		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.sellerType,
-									   getListenIp() + ":" + getListenPort())) {
-			logger.error("Error in get interested sellers");
-		}
-*/
-		return true;
-	}
-	
-	public void fetchRelevantBuyers() {
-		
-//TODO del
-//		Seller seller = new Seller(mgr.getUserName(), this.serverIp, this.serverPort);
-//		
-//		for (String prod : mgr.getProducts())
-//			seller.getProducts().add(prod);
-//		
-//		if (!netMed.fetchRelevantBuyers(seller))
-//			logger.error("Failed to issue buyer list refresh");
-/*
-		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.buyerType,
-					  				   getListenIp() + ":" + getListenPort())) {
-			logger.error("Error in get interested buyers!");
-		}
-*/
 	}
 
 	/* 
@@ -499,7 +437,7 @@ public class Mediator {
 	public boolean hasMadeOffer(User seller) {
 		return true;
 	}
-	
+
 	/*
 	 * when Buyer refuses lowest bid :-), all other auction participants
 	 * must be updated with the new lowest bid
@@ -522,21 +460,6 @@ public class Mediator {
 		return false;
 	}
 
-	public int getBestOffer(String product) {
-		int bestOffer = Integer.MAX_VALUE;
-
-		synchronized (relevantUsers) {
-			for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
-				int bid = e.getValue().getBid(product);
-
-				if (bid < bestOffer)
-					bestOffer = bid;
-			}
-		}
-
-		return bestOffer;
-	}
-	
 	/**
 	 * Interprets the nature of the user action, determines the required
 	 * destinations and forwards the request to the network module
@@ -548,6 +471,7 @@ public class Mediator {
 	 */
 	public void sendNotifications(int action, String userName, String product, int price) {
 
+		Map<String, User> relevantUsers;
 		Vector<User> destinations = new Vector<User>();
 		String userInPackage = userName;
 
@@ -556,51 +480,45 @@ public class Mediator {
 		case RequestTypes.REQUEST_LAUNCH_OFFER:
 		case RequestTypes.REQUEST_DROP_OFFER:
 			logger.debug("Sending offer request notification");
-			synchronized (relevantUsers) {
-				for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-					if (entry.getValue().getProducts().contains(product)) {
+			relevantUsers = wscMed.getRelevantUsers(product);
+			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
+				logger.debug("Launch offer: dest " + entry.getValue());
+				destinations.add(entry.getValue());
+			}
 
-						logger.debug("Launch offer: dest " + entry.getValue());
-						destinations.add(entry.getValue());
-					}
-				}
-				
-				if (!netMed.sendNotifications(action, userName, this.serverIp,
-						this.serverPort, product, destinations)) {
-					logger.debug("Failed to send network Notifications!");
-				}
+			if (!netMed.sendNotifications(action, userName, this.serverIp,
+					this.serverPort, product, destinations)) {
+				logger.debug("Failed to send network Notifications!");
 			}
 
 			return;
-		
+
 		case RequestTypes.REQUEST_RELEVANT_BUYERS:
 			if (!netMed.sendNotifications(action, userName, this.serverIp,
 					this.serverPort, product, destinations)) {
 				logger.debug("Failed to send network Notifications!");
 			}
-			
+
 			return;
 
 		/* assumes it can logically be called (we don't have the highest bid) */
 		case RequestTypes.REQUEST_DROP_AUCTION:
-			synchronized (relevantUsers) {
-				User user = relevantUsers.get(userName);
-				if (user == null)
-					return;
+			User user = wscMed.getRelevantUsers().get(userName);
+			if (user == null)
+				return;
 
-				destinations.add(user);
-				userInPackage = getUserName();
-			}
+			destinations.add(user);
+			userInPackage = getUserName();
 			break;
 
-		/* 
+		/*
 		 * two-way send command:
 		 * seller->buyer && buyer->notifies all other sellers if best bid made
 		 */
 		case RequestTypes.REQUEST_MAKE_OFFER:
 			logger.debug("Made offer: " + price);
 			destinations = mgr.computeDestinations(action, userName, product, price);
-			
+
 			logger.debug("Sending MAKE_OFFER to " + destinations.size() + " users!");
 
 			if (!netMed.sendNotifications(action, mgr.getUserName(), product, price, destinations)) {
@@ -617,32 +535,30 @@ public class Mediator {
 
 			Vector<User> otherDestinations = new Vector<User>();
 			boolean found = false;
-		
-			synchronized (relevantUsers) {
-				for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
-					User seller = entry.getValue();
+			relevantUsers = wscMed.getRelevantUsers();
+			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
+				User seller = entry.getValue();
 
-					if (!found && seller.getName().equals(userName)) {
+				if (!found && seller.getName().equals(userName)) {
 
-						destinations.add(seller);
-						found = true;
-						continue;
-					}
-					
-					if (seller.getProducts().contains(product)) {
-						otherDestinations.add(seller);
-					}
+					destinations.add(seller);
+					found = true;
+					continue;
+				}
+
+				if (seller.getProducts().contains(product)) {
+					otherDestinations.add(seller);
 				}
 			}
 
 			if (!netMed.sendNotifications(action, mgr.getUserName(),
-											product, price, destinations)) {
+					product, price, destinations)) {
 				logger.debug("Failed to send network Notifications!");
 			}
-			
+
 			/* other auction participants simply receive a "DROP_OFFER" message */
 			if (!netMed.sendNotifications(RequestTypes.REQUEST_DROP_OFFER,
-							mgr.getUserName(), product, price, otherDestinations)) {
+					mgr.getUserName(), product, price, otherDestinations)) {
 				logger.debug("Failed to send network Notifications!");
 			}
 
@@ -654,54 +570,43 @@ public class Mediator {
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:
 			otherDestinations = new Vector<User>();
 			found = false;
-			synchronized (relevantUsers) {
-				for (Map.Entry<String, User> entry : relevantUsers.entrySet()) 
-					if (!entry.getKey().equals(userName)) {
-						User seller = entry.getValue();
+			relevantUsers = wscMed.getRelevantUsers();
+			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) 
+				if (!entry.getKey().equals(userName)) {
+					User seller = entry.getValue();
 
-						if (seller.getProducts().contains(product)) {
-							otherDestinations.add(seller);
-						}
+					if (seller.getProducts().contains(product)) {
+						otherDestinations.add(seller);
 					}
-			}
+				}
 			/* Start transfer with the winner. */
 			doProductTransfer(userName, product);
-			
+
 			/* other auction participants simply receive a "DROP_AUCTION" message */
 			if (!netMed.sendNotifications(RequestTypes.REQUEST_DROP_AUCTION,
-							mgr.getUserName(), product, price, otherDestinations)) {
+					mgr.getUserName(), product, price, otherDestinations)) {
 				logger.debug("Failed to send network Notifications!");
 			}
 
 			return;
 
 		case RequestTypes.REQUEST_REFUSE_OFFER:
-			synchronized (relevantUsers) {
-				User seller = relevantUsers.get(userName);
-				if (seller != null) {
-					destinations.add(seller);
+			relevantUsers = wscMed.getRelevantUsers();
+			User seller = relevantUsers.get(userName);
+			if (seller != null) {
+				destinations.add(seller);
 
-					if (hasHighestBid(seller, product)) {
-						otherDestinations = new Vector<User>();
-						for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
-							seller = e.getValue();
-							if (seller.getProducts().contains(product) && hasMadeOffer(seller)) {
-								otherDestinations.add(seller);
-							}
-						}
-
-						/* 
-						 * if the best bid was refused, we refresh other sellers with
-						 * a "REQUEST_LAUNCH_OFFER" message
-						 */
-						if (!netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
-									mgr.getUserName(), product, getBestOffer(product), otherDestinations)) {
-							logger.debug("Failed to send network Notifications!");
+				if (hasHighestBid(seller, product)) {
+					otherDestinations = new Vector<User>();
+					for (Map.Entry<String, User> e : relevantUsers.entrySet()) {
+						seller = e.getValue();
+						if (seller.getProducts().contains(product) && hasMadeOffer(seller)) {
+							otherDestinations.add(seller);
 						}
 					}
-					if (!netMed.sendNotifications(action, getUserName(), product, price, destinations)) {
-						logger.debug("Failed to send network Notifications!");
-					}
+				}
+				if (!netMed.sendNotifications(action, getUserName(), product, price, destinations)) {
+					logger.debug("Failed to send network Notifications!");
 				}
 			}
 			break;
@@ -719,15 +624,13 @@ public class Mediator {
 	 * @param product - name/type of the involved product
 	 */
 	public void doProductTransfer(String buyerName, String product) {
-		
-		Vector<User> destinations = new Vector<User>();
-		synchronized (relevantUsers) {
-			User user = relevantUsers.get(buyerName);
 
-			if (user == null)
-				return;
-			destinations.add(user);	
-		}		
+		Vector<User> destinations = new Vector<User>();
+		User user = wscMed.getRelevantUsers().get(buyerName);
+
+		if (user == null)
+			return;
+		destinations.add(user);
 
 		netMed.sendNotifications(RequestTypes.REQUEST_INITIAL_TRANSFER,
 				buyerName, product, 0, destinations);

@@ -44,20 +44,6 @@ public class BuyerState extends State {
 		user = new Buyer(username, ip, port, products);
 
 		logger.debug("Created seller " + username);
-
-		// just for the sake of previous versions compatibility, saveUserConnectInfo for each relevant user
-		Map<String, User> sellers = med.getRelevantUsers();
-		if (sellers == null)
-			return;
-		for (Map.Entry<String, User> e : sellers.entrySet()) {
-			User gu = e.getValue();
-			String name = gu.getName();
-			String connip = gu.getIp();
-			Integer connport = gu.getPort();
-
-			for (int i = 0, n = gu.getNoOfProducts(); i < n; i++)
-				med.saveUserConnectInfo(name, gu.getProduct(i),	connip, connport);
-		}
 	}
 
 	@Override
@@ -148,7 +134,7 @@ public class BuyerState extends State {
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {
 		Vector<User> destinations = new Vector<User>();
 
-		for (Entry<String, User> entry : med.getRelUsers().entrySet()) {
+		for (Entry<String, User> entry : med.getRelevantUsers().entrySet()) {
 			User seller = entry.getValue();
 
 			if (!seller.getName().equals(userName)) {

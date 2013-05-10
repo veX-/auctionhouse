@@ -88,7 +88,6 @@ public class SellerState extends State {
 	}
 
 	public void postGUIInit() {
-		med.fetchRelevantBuyers();
 	}
 	
 	/* Update the GUI with received info from network _on the EDT_ !! */
@@ -145,7 +144,7 @@ public class SellerState extends State {
 		Vector<User> destinations = new Vector<User>();
 		
 		System.out.print("[Mediator]: Searching for user " + userName + "... ");
-		User buyer = med.getRelUsers().get(userName);
+		User buyer = med.getRelevantUsers().get(userName);
 		if (buyer != null)
 			destinations.add(buyer);
 		
