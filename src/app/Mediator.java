@@ -146,6 +146,7 @@ public class Mediator {
 	 * @param value size of the transfer
 	 */
 	public void initTransfer(String userName, String productName, int value) {
+		logger.debug("Init transfer: transfer started status");
 		products.setStatus(userName, productName, State.STATE_TRANSFERS);
 		products.initTransfer(userName, productName, value);
 		guiMed.repaint();
@@ -383,8 +384,8 @@ public class Mediator {
 
 			String status = products.getStatus(prod);
 
-			if (sellerProds.contains(prod)  && !status.equals(State.STATE_INACTIVE) &&
-					!status.equals(State.STATE_TRANSFERP)) {
+			if (sellerProds.contains(prod)  && (status.equals(State.STATE_NOOFFER) ||
+					status.equals(State.STATE_OFFERREF))) {
 
 				System.out.println("Notifying open auction for " + prod);
 				netMed.sendNotifications(RequestTypes.REQUEST_LAUNCH_OFFER,
@@ -574,15 +575,11 @@ public class Mediator {
 		 */
 		case RequestTypes.REQUEST_INITIAL_TRANSFER:
 			otherDestinations = new Vector<User>();
-			found = false;
-			relevantUsers = wscMed.getRelevantUsers();
+			relevantUsers = wscMed.getRelevantUsers(product);
 			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) 
 				if (!entry.getKey().equals(userName)) {
 					User seller = entry.getValue();
-
-					if (seller.getProducts().contains(product)) {
-						otherDestinations.add(seller);
-					}
+					otherDestinations.add(seller);
 				}
 			/* Start transfer with the winner. */
 			doProductTransfer(userName, product);

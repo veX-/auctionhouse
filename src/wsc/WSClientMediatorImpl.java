@@ -185,7 +185,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 					String listenIp = (String)info.get("ip");
 					Integer listenPort = (Integer)info.get("port");
 					Vector<String> currProds = getProductsFromJSON(info);
-					relevantUsers.put(name, new User(username, listenIp, listenPort, currProds));
+					relevantUsers.put(name, new User(name, listenIp, listenPort, currProds));
 				}
 			}
 		} catch (JSONException e) {
