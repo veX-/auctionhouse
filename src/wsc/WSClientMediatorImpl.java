@@ -21,17 +21,27 @@ import org.json.JSONObject;
 import app.Mediator;
 import app.model.User;
 
+/**
+ * WSClient is a client of Auction House Service. WSClient interrogates the
+ * web service in order to obtain/update relevant information like: relevant
+ * users logged in, connection info when current user logs in/out.
+ *
+ * Once the user has logged in successfully WSClient's role is to maintain a
+ * consistent "data base" of relevant users (users that offer/want the products
+ * this user want/offers).
+ *
+ * @author Andreea HODEA, Liviu CHIRCU; IDP - AuctionHouse 2013
+ *
+ */
 public class WSClientMediatorImpl implements WSClientMediator {
 
 
 	private Logger logger;
 	private Call call = null;
-	private Mediator med;
 	private Map<String, User> relevantUsers;
 
 	public WSClientMediatorImpl(String url, Mediator med) {
 
-		this.med = med;
 		this.relevantUsers = new HashMap<String, User>();
 		
 		initLogger();
@@ -54,7 +64,8 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		logger = Logger.getLogger(WSClientMediatorImpl.class.getName());
 	}
 
-	public boolean register(String username, String pass, String type, String products) {
+	public boolean register(String username, String pass, String type,
+			String products) {
 
 		boolean ret = false;
 
@@ -94,7 +105,8 @@ public class WSClientMediatorImpl implements WSClientMediator {
 				ret = (boolean)r;
 				if (ret)
 					/* Fetch relevant users */
-					myProds = getInterestedUsers(username, type, String.format("%s:%s", listenIp, listenPort));
+					myProds = getInterestedUsers(username, type, 
+							String.format("%s:%s", listenIp, listenPort));
 			}
 
 		} catch (RemoteException e) {
@@ -144,7 +156,8 @@ public class WSClientMediatorImpl implements WSClientMediator {
 
 	@SuppressWarnings("unchecked")
 	/* Return products of current user and store relevant users. */
-	private Vector<String> getInterestedUsers(String username, String type, String connInfo) {
+	private Vector<String> getInterestedUsers(String username, String type,
+			String connInfo) {
 		String result = null;
 		Vector<String> myProducts = new Vector<String>();
 
@@ -185,7 +198,8 @@ public class WSClientMediatorImpl implements WSClientMediator {
 					String listenIp = (String)info.get("ip");
 					Integer listenPort = (Integer)info.get("port");
 					Vector<String> currProds = getProductsFromJSON(info);
-					relevantUsers.put(name, new User(name, listenIp, listenPort, currProds));
+					relevantUsers.put(name,
+							new User(name, listenIp, listenPort, currProds));
 				}
 			}
 		} catch (JSONException e) {
@@ -225,11 +239,6 @@ public class WSClientMediatorImpl implements WSClientMediator {
 			e1.printStackTrace();
 		}
 	}
-
-//	public static void main(String[] args) {
-//		WSClientMediatorImpl cl = new WSClientMediatorImpl("http://localhost:8383/axis/services/AuctionHouseService", null);
-//		cl.register();
-//	}
 
 	public boolean handleLogoutEvent(String userName) {
 		return false;

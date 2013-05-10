@@ -12,6 +12,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Auction House Service main role is to persist and retrieve users, products
+ * and the association between users and products.
+ * 
+ * The service persists data to a database having the parameters specified in
+ * DatabaseInfo.java. In order to connect to the db, the service makes use of
+ * ConnectionManager.
+ *
+ * @author Andreea HODEA, Liviu CHIRCU; IDP - AuctionHouse 2013
+ *
+ */
 public class AuctionHouseService {
 
 	private static ConnectionManager cm = new ConnectionManager();
@@ -19,14 +30,15 @@ public class AuctionHouseService {
 	public boolean logIn(String username, String password, String type,
 						 String userConn) {
 
-		System.out.println(username + " " + password + " " + type + " " + userConn);
+		System.out.println(String.format("%s %s %s %s", username, password,
+														type, userConn));
 
 		String getUserQuery		= "SELECT * FROM users WHERE Name=?";
 		ResultSet res;
 
 		try {
-			PreparedStatement stmt = cm.getConnection().
-					prepareStatement(getUserQuery, Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement stmt = cm.getConnection().prepareStatement(
+					getUserQuery, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, username);
 			
 			res = stmt.executeQuery();
@@ -36,12 +48,10 @@ public class AuctionHouseService {
 				return false;
 
 			int uId = res.getInt("id");
-			
-			System.out.println("password: '" + res.getString("password") + "'" + password);
 
 			/* password mismatch */
 			String dbPassword = res.getString("password");
-			
+
 			if (dbPassword == null && !password.isEmpty())
 				return false;
 
@@ -49,12 +59,14 @@ public class AuctionHouseService {
 				return false;
 
 			/* type mismatch or user already logged in (has ip and port) */
-			if (!res.getString("usertype").equals(type) || res.getString("ip") != null ||
-				 res.getString("port") != null) {
+			if (!res.getString("usertype").equals(type) ||
+					res.getString("ip") != null ||
+					res.getString("port") != null) {
 				return false;
 			}
 
-			/* user can be successfully logged in. Update his entry in the users table */
+			/* User can be successfully logged in. 
+			 * Update his entry in the users table */
 			String updateQ = "UPDATE users SET Ip=?, Port=? WHERE Id=?";
 			String[] connInfo = userConn.split(":");
 			stmt = cm.getConnection().prepareStatement(updateQ);
@@ -89,8 +101,10 @@ public class AuctionHouseService {
 		return success > 0;
 	}
 	
-	public boolean register(String username, String pass, String type, String products) {
-		System.out.println("Register:" + username + " - " + pass + " - " + type + " - " + products);
+	public boolean register(String username, String pass, String type,
+			String products) {
+		System.out.println(String.format("Register: %s - %s - %s - %s",
+				username, pass, type, products));
 
 		String regUQ = "INSERT INTO users(Name, Password, UserType) VALUES(?, ?, ?)";
 		String regPQ = "INSERT INTO products(Name) VALUES(?)";
@@ -100,8 +114,8 @@ public class AuctionHouseService {
 		String[] prods = products.split(",");
 		try {
 			/* Insert user. */
-			PreparedStatement stmt = cm.getConnection().
-					prepareStatement(regUQ, Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement stmt = cm.getConnection().prepareStatement(
+					regUQ, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, username);
 			if (pass == null || pass.isEmpty())
 				stmt.setNull(2, java.sql.Types.VARCHAR);
@@ -116,10 +130,12 @@ public class AuctionHouseService {
 			int uId = res.getInt(1);
 
 			/* Insert products. */
-			stmt = cm.getConnection().
-					prepareStatement(regPQ, Statement.RETURN_GENERATED_KEYS);
-			PreparedStatement getStmt = cm.getConnection().prepareStatement(getPQ);
-			PreparedStatement assocStmt = cm.getConnection().prepareStatement(reqAQ);
+			stmt = cm.getConnection().prepareStatement(
+					regPQ, Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement getStmt = cm.getConnection().
+					prepareStatement(getPQ);
+			PreparedStatement assocStmt = cm.getConnection().
+					prepareStatement(reqAQ);
 			for (int i = 0; i < prods.length; i++) {
 				stmt.clearParameters();
 				stmt.setString(1, prods[i]);
@@ -141,7 +157,8 @@ public class AuctionHouseService {
 					res.next();
 					pId = res.getInt("Id");
 				}
-				System.out.println("(UserId, ProductId) = (" + uId + ", " + pId + ")");
+				System.out.println(String.format("(UserId, ProductId) = (%d, %d)",
+						uId, pId));
 
 				/* Associate user and product. */
 				assocStmt.clearParameters();
@@ -180,7 +197,8 @@ public class AuctionHouseService {
 	}
 
 	/**
-	 * Return relevant users and the products they want/offer as JSON and update user connection details.
+	 * Return relevant users and the products they want/offer as JSON and
+	 * update user connection details.
 	 *
 	 * @param username User issuing the request.
 	 * @param type Type of user issuing the request.
@@ -208,7 +226,8 @@ public class AuctionHouseService {
 			ResultSet rs = stmt.executeQuery();
 
 			while (rs.next()) {
-				QUser user = new QUser(rs.getString("user"), rs.getString("ip"), rs.getInt("port"));
+				QUser user = new QUser(rs.getString("user"),
+						rs.getString("ip"), rs.getInt("port"));
 				if (temp.get(user) == null)
 					temp.put(user, new ArrayList<String>());
 				List<String> prods = temp.get(user);
