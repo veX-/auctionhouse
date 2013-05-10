@@ -1,0 +1,39 @@
+Project: ah (i.e. auction house)
+Team: Eng4AH
+    - members: 
+      - Liviu Chircu
+      - Andreea Hodea
+
+Etapa a III-a - web service
+===========================
+Componenta web service intregeste proiectul auction house, aceasta avand ca
+principal rol persistarea informatiilor despre utilizatori si
+produsele/serviciile oferite, respectiv dorite.
+
+RULARE
+======
+Nota: indicatiile urmatoare presupun ca axis si tomcat au fost instalate si ca
+variabilele de mediu TOMCAT_HOME, AXIS_HOME, AXIS_LIB sunt setate. De asemenea,
+comenziile trebuiesc rulate in directorul radacina al proiectului.
+
+`
+> chmod +x startService.sh
+> ./startService.sh
+> ant run
+`
+
+Implementare
+============
+AuctionHouseService.java
+  - expune serviciul de acces la baza de date
+  - acceseaza baza de date prin ConnectionManager.java si DatabaseInfo.java
+WSClientMediatorImpl.java
+  - client al serviciului mentionat anterior
+  - retine o "baza de date" cu utilizatorii relevanti
+    - structura <relevantUsers> este create in urma autentificarii cu succes si
+    actualizata la fiecare eveniment de login
+
+Spre deosebire de etapa a doua, in care baza de date era de fapt retinuta de o 
+entitate centrala (dummy), in aceasta etapa orice necesitate de comunicare se
+realizeaza prin intermediul clientului serviciului web, obtinand de la acesta
+parametrii necesari conectarii.
