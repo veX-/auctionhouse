@@ -40,10 +40,6 @@ public class Mediator {
 	private Logger logger = null;
 	private String serverIp;
 	private int serverPort;
-	/**
-	 * Association on product name and flag which tells if it's startup phase for the product.
-	 */
-	private Vector<String> inStartupPhase;
 
 	public Mediator(String url, String ip, int port, String configFile) {
 		this.serverIp = ip;
@@ -53,7 +49,6 @@ public class Mediator {
 		netMed = new NetworkMediatorImpl(this);
 		guiMed = new GUIMediatorImpl(this);
 		wscMed = new WSClientMediatorImpl(url, this);
-		this.inStartupPhase = new Vector<String>();
 	}
 
 	public NetworkMediator getNetMed() {
@@ -510,6 +505,16 @@ public class Mediator {
 			destinations.add(user);
 			userInPackage = getUserName();
 			break;
+
+		case RequestTypes.REQUEST_LOGOUT:
+			logger.debug("Send log out notification");
+			relevantUsers = wscMed.getRelevantUsers();
+			for (Map.Entry<String, User> entry : relevantUsers.entrySet()) {
+				User u = entry.getValue();
+				netMed.sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
+						u.getIp(), u.getPort(), mgr.getUser());
+				return;
+			}
 
 		/*
 		 * two-way send command:

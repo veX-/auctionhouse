@@ -80,6 +80,7 @@ public class AuctionHouseService {
 			stmt.setNull(1, Types.VARCHAR);
 			stmt.setNull(2, Types.INTEGER);
 			stmt.setString(3, username);
+			System.out.println("Execute logOut query: " + stmt);
 			success = stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
