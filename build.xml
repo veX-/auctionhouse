@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- WARNING: Eclipse auto-generated file.
-              Any modifications will be overwritten.
-              To include a user specific buildfile here, simply create one in the same
-              directory with the processing instruction <?eclipse.ant.import?>
-              as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="auctionhouse">
     <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../../../../Programs/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.7"/>
     <property name="source" value="1.7"/>
     <path id="auctionhouse.classpath">
         <pathelement location="bin"/>
-        <pathelement location="../../../../../Programs/apache/log4j/log4j-1.2.17.jar"/>
+        <pathelement location="lib/log4j-1.2.17.jar"/>
+        <pathelement location="lib/json-2.1.jar"/>
+	<fileset dir="src/wsc/lib">
+		<include name="**/*.jar"/>
+	</fileset>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -49,36 +47,30 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
-    <target name="dummyUser">
-        <java classname="app.Main" failonerror="true" fork="yes">
-            <arg line="127.0.0.1 11011"/>
-            <classpath refid="auctionhouse.classpath"/>
-        </java>
-    </target>
     <target name="NewBuyer">
         <java classname="app.Main" failonerror="true" fork="yes">
-            <arg line="127.0.0.1 3000 testBuyer1.txt"/>
+	<arg line="http://localhost:8383/axis/services/AuctionHouseService 127.0.0.1 11011 testBuyer1.txt"/>
             <classpath refid="auctionhouse.classpath"/>
         </java>
     </target>
     <target name="NewSeller">
         <java classname="app.Main" failonerror="true" fork="yes">
-            <arg line="127.0.0.1 3001 testSeller1.txt"/>
+            <arg line="http://localhost:8383/axis/services/AuctionHouseService 127.0.0.1 3001 testSeller1.txt"/>
             <classpath refid="auctionhouse.classpath"/>
         </java>
     </target>
     <target name="NewSeller1">
         <java classname="app.Main" failonerror="true" fork="yes">
-            <arg line="127.0.0.1 3002 testSeller2.txt"/>
+            <arg line="http://localhost:8383/axis/services/AuctionHouseService 127.0.0.1 3002 testSeller2.txt"/>
             <classpath refid="auctionhouse.classpath"/>
         </java>
     </target>
     <target name="run" depends="build">
     	<parallel>
-		<antcall target="dummyUser"/>
-		<sleep seconds="1"/>
 		<antcall target="NewBuyer"/>
+		<sleep seconds="1"/>
 		<antcall target="NewSeller"/>
+		<sleep seconds="1"/>
 		<antcall target="NewSeller1"/>
 	</parallel>
     </target>
