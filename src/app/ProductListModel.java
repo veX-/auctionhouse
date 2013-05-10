@@ -406,4 +406,15 @@ public class ProductListModel extends DefaultTableModel {
 		}
 		return -1;
 	}
+
+	/* Set state inactive for all products. */
+	public void resetState() {
+		int n = getRowCount();
+		for (int i = 0; i < n; i++) {
+			DefaultListModel<String> statuses = (DefaultListModel<String>)
+					((JList<String>) getValueAt(i, STATUS_COL)).getModel();
+			statuses.clear();
+			statuses.addElement(State.STATE_INACTIVE);
+		}
+	}
 }

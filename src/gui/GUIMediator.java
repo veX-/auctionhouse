@@ -16,6 +16,8 @@ public interface GUIMediator {
 
 	public void registerProductsView(ProductsView pView);
 
+	public void resetStatus();
+
 	public Map<String, Command> getContextMenuItems(int row, int listIndex);
 
 	public Map<String, Command> getServiceMenuItems(int row, String name);

@@ -205,6 +205,7 @@ public class ProductsView extends JFrame {
 		if (med.logOut()) {
 			this.remove(wrapper);
 			addLoginPanel();
+			med.resetStatus();
 			this.getContentPane().repaint();
 		}
 	}

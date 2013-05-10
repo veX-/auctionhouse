@@ -106,6 +106,6 @@ public class User implements java.io.Serializable {
 
 	@Override
 	public String toString() {
-		return "(" + name + " " + ip + " " + port + ")";
+		return "(" + name + " " + ip + " " + port + ")" + products;
 	}
 }

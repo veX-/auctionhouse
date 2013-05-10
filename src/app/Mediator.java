@@ -104,6 +104,10 @@ public class Mediator {
 		return products.getValueFromCol(userName, productName, col);
 	}
 
+	public void resetStatus() {
+		products.resetState();
+	}
+
 	public void updateUsersList(String productName, Map<String, String> names) {
 		products.updateUsersList(productName, names);
 		guiMed.repaint();
@@ -375,10 +379,7 @@ public class Mediator {
 		Vector<User> destinations = new Vector<User>();
 		destinations.add(seller);
 
-		logger.debug("Handling new system seller: " + seller.getName());
-
-		Vector<String> localProdList = new Vector<String>();
-		seller.setProducts(localProdList);
+		logger.debug("Handling new system seller: " + seller);
 
 		for (String prod : mgr.getProducts()) {
 
@@ -393,7 +394,6 @@ public class Mediator {
 						this.serverPort, prod, destinations);
 
 				addUserToList(seller.getName(), prod);
-				localProdList.add(prod);
 			}
 		}
 
@@ -557,6 +557,8 @@ public class Mediator {
 				}
 			}
 
+			logger.debug(String.format("ACCEPT (%s) and DROP (%s)",
+					destinations.toString(), otherDestinations.toString()));
 			if (!netMed.sendNotifications(action, mgr.getUserName(),
 					product, price, destinations)) {
 				logger.debug("Failed to send network Notifications!");

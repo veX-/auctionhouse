@@ -63,8 +63,12 @@ public class NetworkNotification implements java.io.Serializable {
 	}
 
 	public String toString() {
-		return "[ " + this.action + " - " + this.name + " - " + this.product
+		if (product == null)
+			return "[ " + this.action + " - " + this.name + " - " + this.products
 				+ " - " + this.price + " ]";
+		else
+			return "[ " + this.action + " - " + this.name + " - " + this.product
+					+ " - " + this.price + " ]";
 	}
 
 	public int getAction() {

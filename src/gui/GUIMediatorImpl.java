@@ -38,6 +38,11 @@ public class GUIMediatorImpl implements GUIMediator {
 	}
 
 	@Override
+	public void resetStatus() {
+		med.resetStatus();
+	}
+
+	@Override
 	public Map<String, Command> getContextMenuItems(int row, int listIndex) {
 		return med.getContextMenuItems(row, listIndex);
 	}
