@@ -253,7 +253,7 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		for (Map.Entry<String, User> e : relevantUsers.entrySet())
 			if (e.getValue().contains(product))
 				someUsers.put(e.getKey(), e.getValue());
-		return relevantUsers;
+		return someUsers;
 	}
 
 	@Override

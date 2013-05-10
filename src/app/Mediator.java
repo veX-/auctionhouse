@@ -520,8 +520,8 @@ public class Mediator {
 				User u = entry.getValue();
 				netMed.sendLoginNotification(RequestTypes.REQUEST_LOGOUT,
 						u.getIp(), u.getPort(), mgr.getUser());
-				return;
 			}
+			return;
 
 		/*
 		 * two-way send command:

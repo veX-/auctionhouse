@@ -89,7 +89,9 @@ public class ProductListModel extends DefaultTableModel {
 
 		DefaultListModel model1 = (DefaultListModel)((JList)
 				getValueAt(row, col)).getModel();
-		return model1.get(index);
+		if (model1.size() > index)
+			return model1.get(index);
+		return null;
 	}
 
 	public boolean hasStatus(int row, String status) {
@@ -360,7 +362,7 @@ public class ProductListModel extends DefaultTableModel {
 			for (int i = OFFER_COL, n = getColumnCount(); i < n; i++) {
 				DefaultListModel<Integer> offers = (DefaultListModel<Integer>)
 						((JList<Integer>) getValueAt(index, i)).getModel();
-				if (offers.size() >= listIndex)
+				if (offers.size() > listIndex)
 					offers.remove(listIndex);
 			}
 			setValueAt(null, index, PROGRESS_COL);
