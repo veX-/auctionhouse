@@ -195,7 +195,11 @@ public class Mediator {
 
 	/*	register to database*/
 	public boolean register(String username, String pass, String type) {
+		String logFile = String.format(LOG_FILE_FORMAT, username);
+		System.setProperty("logfile.name", logFile);
 		System.out.println("LOADING PRODLIST");
+		this.initLogger();
+
 		Vector<String> products = tempReadConfig(username, type);
 		if (products == null || products.size() == 0)
 			return false;
@@ -211,6 +215,8 @@ public class Mediator {
 	}
 
 	public void initLogger() {
+		if (logger != null)
+			return;
 		logger = Logger.getLogger(Mediator.class.getName());
 		netMed.initLogger();
 		wscMed.initLogger();

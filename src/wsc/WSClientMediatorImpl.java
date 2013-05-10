@@ -38,13 +38,17 @@ public class WSClientMediatorImpl implements WSClientMediator {
 
 	private Logger logger;
 	private Call call = null;
+	private String url;
 	private Map<String, User> relevantUsers;
 
 	public WSClientMediatorImpl(String url, Mediator med) {
 
 		this.relevantUsers = new HashMap<String, User>();
-		
-		initLogger();
+		this.url = url;
+	}
+
+	public void initLogger() {
+		logger = Logger.getLogger(WSClientMediatorImpl.class.getName());
 
 		try {
 			URL endpoint = new URL(url);
@@ -58,10 +62,6 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		} catch (ServiceException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public void initLogger() {
-		logger = Logger.getLogger(WSClientMediatorImpl.class.getName());
 	}
 
 	public boolean register(String username, String pass, String type,
