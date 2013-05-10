@@ -3,7 +3,9 @@ package wsc;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.xml.namespace.QName;
@@ -17,19 +19,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.Mediator;
-import app.model.Seller;
-import app.model.User;
-import app.states.RequestTypes;
+import app.model.GenericUser;
 
 public class WSClientMediatorImpl implements WSClientMediator {
+
 
 	private Logger logger;
 	private Call call = null;
 	private Mediator med;
+	private Map<String, GenericUser> relevantUsers;
 
 	public WSClientMediatorImpl(String url, Mediator med) {
 
 		this.med = med;
+		this.relevantUsers = new HashMap<String, GenericUser>();
 		
 		initLogger();
 
@@ -73,10 +76,11 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		return ret;
 	}
 
-	public boolean logIn(String username, String password, String type,
+	public Vector<String> logIn(String username, String password, String type,
 						 String listenIp, int listenPort) {
 
 		boolean ret = false;
+		Vector<String> myProds = null;
 
 		call.setOperationName(new QName("logIn"));
 		
@@ -88,14 +92,17 @@ public class WSClientMediatorImpl implements WSClientMediator {
 			}
 			else {
 				ret = (boolean)r;
+				if (ret)
+					/* Fetch relevant users TODO */
+					myProds = getInterestedUsers(username, type, String.format("%s:%s", listenIp, listenPort));
 			}
 
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 
-		logger.info("Authentication for " + username + ": " + ret);		
-		return ret;
+		logger.info("Authentication for " + username + ": " + ret);
+		return myProds;
 	}
 	
 	public boolean logOut(String username) {
@@ -121,9 +128,25 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		return ret;
 	}
 
+	private Vector<String> getProductsFromJSON(JSONObject info) {
+		Vector<String> prods = new Vector<String>();
+		try {
+			JSONArray products = (JSONArray)info.get("products");
+
+			int n = products.length();
+			for (int i = 0; i < n; i++)
+				prods.add((String)products.get(i));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return prods;
+	}
+
 	@SuppressWarnings("unchecked")
-	public boolean getInterestedUsers(String username, String type, String connInfo) {
+	/* Return products of current user and store relevant users. */
+	private Vector<String> getInterestedUsers(String username, String type, String connInfo) {
 		String result = null;
+		Vector<String> myProducts = new Vector<String>();
 
 		call.setOperationName(new QName("getDB"));
 		
@@ -143,81 +166,33 @@ public class WSClientMediatorImpl implements WSClientMediator {
 		logger.info("Interested users: " + result);
 
 		if (result == null)
-			return false;
+			return null;
 		
-		String self = med.getUserName();
-
+		String self = username;
 		try {
-			if (type.equals(User.sellerType)) {
-				JSONObject users = new JSONObject(result);
-				
-				Iterator<String> it = users.keys();
-				
-				while (it.hasNext()) {
-					String name = (String)it.next();
-					
-					if (name.equals(self))
-						continue;
-	
-					JSONObject info = (JSONObject)users.get(name);
-					
+			JSONObject users = new JSONObject(result);
+			
+			Iterator<String> it = users.keys();
+			
+			while (it.hasNext()) {
+				String name = (String)it.next();
+				JSONObject info = (JSONObject)users.get(name);
+				if (name.equals(self))
+					// it's me, store my products in myProducts
+					myProducts.addAll(getProductsFromJSON(info));
+				else {
+					// it's a user relevant for me, store info of this user
 					String listenIp = (String)info.get("ip");
 					Integer listenPort = (Integer)info.get("port");
-					
-					JSONArray products = (JSONArray)info.get("products");
-					
-					int n = products.length();
-					for (int i = 0; i < n; i++)
-						med.saveUserConnectInfo(name, (String)products.get(i),
-												listenIp, listenPort);
+					Vector<String> currProds = getProductsFromJSON(info);
+					relevantUsers.put(name, new GenericUser(username, listenIp, listenPort, currProds));
 				}
-				
-			} else {
-				JSONObject users = null;
-				Seller seller = null; 
-				
-				users = new JSONObject(result);
-				
-				JSONArray selfArray = (JSONArray)users.get(self);
-				Vector<String> selfProducts = new Vector<String>();
-				
-				int n = selfArray.length();
-				for (int i = 0; i < n; i++)
-					selfProducts.add((String)selfArray.get(i));
-			
-				seller = new Seller(med.getUserName(), med.getListenIp(), med.getListenPort());
-				seller.setProducts(selfProducts);
-			
-				Iterator<String> it = users.keys();
-				while (it.hasNext()) {
-					String name = (String)it.next();
-			
-					if (name.equals(self))
-						continue;
-				
-					JSONObject info = (JSONObject)users.get(name);
-					
-					String buyerIp = (String)info.get("ip");
-					Integer buyerPort = (Integer)info.get("port");
-					
-					JSONArray products = (JSONArray)info.get("products");
-					
-					//TODO: locally save the entire prodlist for all buyers
-					
-					if (!med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
-							buyerIp, buyerPort, seller)) {
-							logger.error("Fail to send login notification to buyer " + name);
-					}
-				}
-			}	
-
+			}
 		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return true;
+		return myProducts;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -258,5 +233,17 @@ public class WSClientMediatorImpl implements WSClientMediator {
 
 	public boolean handleLogoutEvent(String userName) {
 		return false;
+	}
+
+	public Map<String, GenericUser> getRelevantUsers() {
+		return relevantUsers;
+	}
+
+	public Map<String, GenericUser> getRelevantUsers(String product) {
+		Map<String, GenericUser> someUsers = new HashMap<String, GenericUser>();
+		for (Map.Entry<String, GenericUser> e : relevantUsers.entrySet())
+			if (e.getValue().contains(product))
+				someUsers.put(e.getKey(), e.getValue());
+		return relevantUsers;
 	}
 }

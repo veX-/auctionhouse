@@ -137,7 +137,7 @@ public class NetworkMediatorImpl implements NetworkMediator {
 		}
 
 		for (int i = 1; i <= noOfChunks; i++) {
-			if (med.getRelevantUsers().get(user.getName()) == null) {
+			if (med.getRelUsers().get(user.getName()) == null) {
 				med.updateGui(RequestTypes.REQUEST_LOGOUT, user.getName(),
 						product, -1);
 				break;

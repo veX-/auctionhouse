@@ -15,6 +15,7 @@ import app.LaunchOfferReqComm;
 import app.Mediator;
 import app.ProductListModel;
 import app.model.Buyer;
+import app.model.GenericUser;
 import app.model.Seller;
 import app.model.User;
 
@@ -42,7 +43,22 @@ public class BuyerState extends State {
 	public void login(String username, Vector<String> products) {
 		logger = Logger.getLogger(BuyerState.class.getName());
 		user = new Buyer(username, products);
+
 		logger.debug("Created seller " + username);
+
+		// just for the sake of previous versions compatibility, saveUserConnectInfo for each relevant user
+		Map<String, GenericUser> sellers = med.getRelevantUsers();
+		if (sellers == null)
+			return;
+		for (Map.Entry<String, GenericUser> e : sellers.entrySet()) {
+			GenericUser gu = e.getValue();
+			String name = gu.getUsername();
+			String ip = gu.getIp();
+			Integer port = gu.getPort();
+
+			for (int i = 0, n = gu.getNoOfProducts(); i < n; i++)
+				med.saveUserConnectInfo(name, gu.getProduct(i),	ip, port);
+		}
 	}
 
 	@Override
@@ -133,7 +149,7 @@ public class BuyerState extends State {
 	public Vector<User> computeDestinations(int action, String userName, String product, int price) {
 		Vector<User> destinations = new Vector<User>();
 
-		for (Entry<String, User> entry : med.getRelevantUsers().entrySet()) {
+		for (Entry<String, User> entry : med.getRelUsers().entrySet()) {
 			User seller = entry.getValue();
 
 			if (!seller.getName().equals(userName)) {

@@ -10,9 +10,7 @@ import javax.swing.JList;
 import org.apache.log4j.Logger;
 
 import app.*;
-import app.model.Buyer;
-import app.model.Seller;
-import app.model.User;
+import app.model.*;
 
 public class SellerState extends State {
 	public static final int BEST_OFFER_COL = ProductListModel.OFFER_COL + 1;
@@ -39,7 +37,19 @@ public class SellerState extends State {
 	public void login(String username, Vector<String> products) {
 		logger = Logger.getLogger(SellerState.class.getName());
 		user = new Seller(username, products);
+
 		logger.debug("Created seller " + username);
+
+		// send login notification to all relevant buyers
+		Map<String, GenericUser> buyers = med.getRelevantUsers();
+		if (buyers == null)
+			return;
+		for (Map.Entry<String, GenericUser> e : buyers.entrySet()) {
+			GenericUser gu = e.getValue();
+			if (!med.getNetMed().sendLoginNotification(RequestTypes.REQUEST_LOGIN,
+					gu.getIp(), gu.getPort(), user))
+					logger.error("Fail to send login notification to buyer " + gu.getUsername());
+			}
 	}
 
 	@Override
@@ -135,7 +145,7 @@ public class SellerState extends State {
 		Vector<User> destinations = new Vector<User>();
 		
 		System.out.print("[Mediator]: Searching for user " + userName + "... ");
-		User buyer = med.getRelevantUsers().get(userName);
+		User buyer = med.getRelUsers().get(userName);
 		if (buyer != null)
 			destinations.add(buyer);
 		

@@ -18,7 +18,7 @@ public class Seller extends User {
 	
 	public Seller(String name, String ip, int port) {
 		super(name, ip, port);
-		this.type = "buyer";
+		this.type = "seller";
 	}
 
 	public Seller(String name, String ip, int port, Vector<String> items) {

@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Vector;
@@ -26,6 +25,7 @@ import wsc.WSClientMediator;
 import wsc.WSClientMediatorImpl;
 import app.model.Seller;
 import app.model.User;
+import app.model.GenericUser;
 import app.states.RequestTypes;
 import app.states.State;
 import app.states.StateManager;
@@ -91,8 +91,16 @@ public class Mediator {
 		return (String) products.getValueFromListCol(row, index);
 	}
 
-	public Hashtable<String, User> getRelevantUsers() {
+	public Hashtable<String, User> getRelUsers() {
 		return this.relevantUsers;
+	}
+
+	public Map<String, GenericUser> getRelevantUsers() {
+		return wscMed.getRelevantUsers();
+	}
+
+	public Map<String, GenericUser> getRelevantUsers(String product) {
+		return wscMed.getRelevantUsers(product);
 	}
 
 	synchronized public void forgetRelevantUser(String userName) {
@@ -199,6 +207,7 @@ public class Mediator {
 
 	/*	register to database*/
 	public boolean register(String username, String pass, String type) {
+		System.out.println("LOADING PRODLIST");
 		Vector<String> products = tempReadConfig(username, type);
 		if (products == null || products.size() == 0)
 			return false;
@@ -232,18 +241,13 @@ public class Mediator {
 		else
 			mgr.setSellerState();
 
-		Vector<String> products = tempReadConfig(username, type);
-		
-		mgr.login(username, products);
-		
-		logger.info("LOADING PRODLIST");
-		loadInitialProdList(username, type, products);
-
-		if (!wscMed.logIn(username, password, type, serverIp, serverPort)) {
-
+		Vector<String> products = wscMed.logIn(username, password, type, serverIp, serverPort);
+		if (products == null) {
 			logger.fatal("[Mediator]: Login Authentication failed!");
 			return false;
 		}
+		createTableModel(username, type, products);
+		mgr.login(username, products);
 
 		return true;
 	}
@@ -313,17 +317,14 @@ public class Mediator {
 	}
 
 	/**
-	 * Load initial configurations for a user and return 0 for success.
-	 * 
-	 * Also initiate logger here, after username is known.
+	 * Create table model, i.e. what the user would see after log in.
 	 * 
 	 * @param username
 	 * @param type
 	 * @param products
-	 * @return 0 for success, -1 if type is unknown
 	 */
-	public int loadInitialProdList(String username, String type,
-			List<String> products) {
+	public void createTableModel(String username, String type,
+			Vector<String> products) {
 
 		Object[][] productsInfo;
 
@@ -346,8 +347,6 @@ public class Mediator {
 		ProductListModel.columnNames[ProductListModel.LIST_COL] += mgr.getListName();
 		this.products = new ProductListModel(productsInfo);
 		mgr.updateColumns(this.products);
-
-		return 0;
 	}
 
 	public String getListName() {
@@ -464,12 +463,12 @@ public class Mediator {
 		
 		Vector<String> products = new Vector<String>();
 		products.add(product);
-		
+/*		
 		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.sellerType,
 									   getListenIp() + ":" + getListenPort())) {
 			logger.error("Error in get interested sellers");
 		}
-
+*/
 		return true;
 	}
 	
@@ -483,11 +482,12 @@ public class Mediator {
 //		
 //		if (!netMed.fetchRelevantBuyers(seller))
 //			logger.error("Failed to issue buyer list refresh");
-		
+/*
 		if (!wscMed.getInterestedUsers(mgr.getUserName(), User.buyerType,
 					  				   getListenIp() + ":" + getListenPort())) {
 			logger.error("Error in get interested buyers!");
 		}
+*/
 	}
 
 	/* 

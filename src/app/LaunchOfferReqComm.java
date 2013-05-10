@@ -32,7 +32,7 @@ public class LaunchOfferReqComm implements Command {
 			}
 		}
 		else {
-			Hashtable<String, User> relUsers = med.getRelevantUsers();
+			Hashtable<String, User> relUsers = med.getRelUsers();
 			Map<String, String> users = new HashMap<String, String>();
 			for (String key : relUsers.keySet())
 				if (relUsers.get(key).getProducts().contains(productName))
