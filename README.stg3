@@ -14,13 +14,27 @@ RULARE
 ======
 Nota: indicatiile urmatoare presupun ca axis si tomcat au fost instalate si ca
 variabilele de mediu TOMCAT_HOME, AXIS_HOME, AXIS_LIB sunt setate. De asemenea,
-comenziile trebuiesc rulate in directorul radacina al proiectului.
+comenzile trebuiesc rulate in directorul radacina al proiectului.
 
-`
-> chmod +x startService.sh
-> ./startService.sh
-> ant run
-`
+Crearea bazei de date si a tabelelor
+------------------------------------
+```
+$ mysql -u root
+mysql> source create-user-and-db.sql
+mysql> exit
+$ mysql -u test -h localhost -p
+T3$t
+mysql> source create-tables.sql
+mysql> exit
+```
+
+Pornire web service si lansarea a 3 instante - 1 cumparator si 2 furnizori
+--------------------------------------------------------------------------
+```
+$ chmod +x startService.sh
+$ ./startService.sh
+$ ant run
+```
 
 Implementare
 ============
@@ -30,7 +44,7 @@ AuctionHouseService.java
 WSClientMediatorImpl.java
   - client al serviciului mentionat anterior
   - retine o "baza de date" cu utilizatorii relevanti
-    - structura <relevantUsers> este create in urma autentificarii cu succes si
+    - structura <relevantUsers> este creata in urma autentificarii cu succes si
     actualizata la fiecare eveniment de login
 
 Spre deosebire de etapa a doua, in care baza de date era de fapt retinuta de o 
